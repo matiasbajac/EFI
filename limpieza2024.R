@@ -1,5 +1,6 @@
 ###### Funciones
 
+
 fun_abandono_2024 <- function(data){
    data_fil <- data %>% filter(nom_oferta == "CONTADOR PUBLICO")
    if (nrow(data_fil) == 0) return(0)

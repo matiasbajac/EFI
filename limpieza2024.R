@@ -114,3 +114,4 @@ dos=actividades %>%  left_join(todos_,by=c("id")) %>%
 
 
 
+

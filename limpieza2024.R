@@ -119,5 +119,5 @@ dos=actividades %>%  left_join(todos_,by=c("id")) %>%
 act_curso = actividades %>%  group_by(id)  %>% filter(aprobada_act==1)  %>% filter(fecha_activ_final<as.Date("2022-12-31")) %>%  summarise(cant_materias_aprobadas =  sum(aprobada_act),creditos = 10*cant_materias_aprobadas)
 
 
-act_por_semestre = actividades %>%  
+
 

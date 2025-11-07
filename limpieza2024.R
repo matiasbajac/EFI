@@ -110,8 +110,14 @@ actividades = data  %>%  filter(nom_oferta == "CONTADOR PUBLICO" & codigo_mat %i
 todos_ = todos_ %>%  select(id, fechanacimiento_fe,sexo_fe)  
 
 dos=actividades %>%  left_join(todos_,by=c("id")) %>% 
-  mutate(edad_final = interval(as.Date(fechanacimiento_fe), as.Date(fecha_activ_final)) / years(1))
+  mutate(edad_final = interval(as.Date(fechanacimiento_fe), as.Date(fecha_activ_final)) / years(1),
+         edad_inicial = interval(as.Date(fechanacimiento_fe), as.Date(fecha_activ_inicial))
 
 
+## si tomamos en cuenta a aquelos individuos que abandonan como los que no tienen actividades en 2023 
+#
+act_curso = actividades %>%  group_by(id)  %>% filter(aprobada_act==1)  %>% filter(fecha_activ_final<as.Date("2022-12-31")) %>%  summarise(cant_materias_aprobadas =  sum(aprobada_act),creditos = 10*cant_materias_aprobadas)
 
+
+act_por_semestre = actividades %>%  
 

@@ -71,7 +71,6 @@ fun_prom_general <- function(data, fecha_ini, fecha_fin){
 
 todos_act <- read_dta("bases EFI 2025/TODOS Cdor actividades_EFI2024.dta")
 todos_form <- read_dta("bases EFI 2025/TODOS Cdor form_ingreso_ EFI2024.dta")
-todos_inscr <- read_dta("bases EFI 2025/datos_persona Cdor_id_numerodoc_EFI2024.dta")
 
 ##### Limpieza ######
 
@@ -87,44 +86,44 @@ df_1 <- todos_act %>%
          in_economia = ifelse(nrow(filter(df,codigo_servicio==1062))==0,0,1),
          eventos_tot = fun_eventos(cur_data(), -Inf, Inf),
          eventos_2019_1 = fun_eventos(df, 
-                                      as.Date('2019-04-01'), 
-                                      as.Date('2019-09-30')),
+                                      as.Date('2019-06-01'), 
+                                      as.Date('2019-10-31')),
          eventos_2019_2 = fun_eventos(df, 
-                                      as.Date('2019-10-01'), 
-                                      as.Date('2020-03-31')),
+                                      as.Date('2019-11-01'), 
+                                      as.Date('2020-05-31')),
          eventos_2020_1 = fun_eventos(df, 
-                                      as.Date('2020-04-01'), 
-                                      as.Date('2020-09-30')),
+                                      as.Date('2020-06-01'), 
+                                      as.Date('2020-10-31')),
          eventos_2020_2 = fun_eventos(cur_data(), 
-                                      as.Date('2020-10-01'), 
-                                      as.Date('2021-03-31')),
+                                      as.Date('2020-11-01'), 
+                                      as.Date('2021-05-31')),
          eventos_2021_1 = fun_eventos(df, 
-                                      as.Date('2021-04-01'), 
-                                      as.Date('2021-09-30')),
+                                      as.Date('2021-06-01'), 
+                                      as.Date('2021-10-31')),
          eventos_2021_2 = fun_eventos(df, 
-                                      as.Date('2021-10-01'), 
-                                      as.Date('2022-03-31')),
+                                      as.Date('2021-06-01'), 
+                                      as.Date('2022-10-31')),
          eventos_2022_1 = fun_eventos(df, 
-                                      as.Date('2022-04-01'), 
-                                      as.Date('2022-09-30')),
+                                      as.Date('2022-06-01'), 
+                                      as.Date('2022-10-31')),
          eventos_2022_2 = fun_eventos(df, 
-                                      as.Date('2022-10-01'), 
-                                      as.Date('2023-03-31')),
+                                      as.Date('2022-11-01'), 
+                                      as.Date('2023-05-31')),
          eventos_2023_1 = fun_eventos(df, 
-                                      as.Date('2023-04-01'), 
-                                      as.Date('2023-09-30')),
+                                      as.Date('2023-06-01'), 
+                                      as.Date('2023-10-31')),
          eventos_2023_2 = fun_eventos(df, 
-                                      as.Date('2023-10-01'), 
-                                      as.Date('2024-03-30')),
+                                      as.Date('2023-11-01'), 
+                                      as.Date('2024-05-31')),
          promedio_aprobaciones = fun_prom_aprobado(df, -Inf, Inf),
          promedio_general = fun_prom_general(df, -Inf, Inf),
          abandono = fun_abandono_2024(df),
          act_post_abandono = fun_act_post_abandono(df)
       )
    })
-
+todos_act$nom_oferta
 # se va a poner informacion desagregada para las materias comunes para economia y contador publico
-actividades = todos_act  %>%  
+
   filter(nom_oferta == "CONTADOR PUBLICO" & codigo_mat %in% c(3505, 3462, 3539, 2573, 3378,3543)) %>%    
   mutate(carrera = 1) %>% 
   pivot_wider(names_from = "nom_oferta", values_from = "carrera", values_fill = 0) %>% 
@@ -145,6 +144,22 @@ actividades = todos_act  %>%
 ## mientras que cursadas dice las veces que la curso
 ## aprobada_act si la aprobo o no 
 
+
+## funcion de lo anterior
+
+## usando la base de inscriptos e 2019 la junto con la de actividades y  calculo la edad en relacion a la ultima actividad que rindieron y la fecha de nacimiento 
+
+#todos_ = todos_ %>%  select(id, fechanacimiento_fe,sexo_fe)  
+
+#dos=actividades %>%  left_join(todos_,by=c("id")) %>% 
+ # mutate(edad_final = interval(as.Date(fechanacimiento_fe), as.Date(fecha_activ_final)) / years(1),
+  #       edad_inicial = interval(as.Date(fechanacimiento_fe), as.Date(fecha_activ_inicial)))
+
+
+## si tomamos en cuenta a aquelos individuos que abandonan como los que no tienen actividades en 2023 
+#
+#act_curso = actividades %>%  group_by(id)  %>% filter(aprobada_act==1)  %>% filter(fecha_activ_final<as.Date("2022-12-31")) %>%  summarise(cant_materias_aprobadas =  sum(aprobada_act),creditos = 10*cant_materias_aprobadas)
+
 act_wide <- actividades %>%
    group_by(id, codigo_mat) %>%
    mutate(n = row_number()) %>% 
@@ -154,14 +169,14 @@ act_wide <- actividades %>%
       values_from = c(fecha_activ_inicial, fecha_activ_final, cursadas, aprobada_act, oferta, anio_aprobada)
    )
 
+
 # agregar actividades a df_1
-df_2 <- full_join(df_1, act_wide,by=c("id"))
+df_2 <- full_join(df_1, act_wide,by=c("id")) 
 
 # agregar df_2 a todos_form
-df_3 <- full_join(todos_form, df_2,by=c("id", 'numerodoc')) %>% 
-   full_join(todos_inscr, by=c("id", 'numerodoc', 'nom_oferta'))
+df_3 <- full_join(todos_form, df_2,by=c("id", 'numerodoc'))
 
-
+df_3$fecha
 # acomodar
 df_4 <- df_3 %>% 
   mutate(edad_final_3462 = interval(as.Date(fechanacimiento_fe), as.Date(fecha_activ_final_3462_1)) / years(1),
@@ -170,22 +185,23 @@ df_4 <- df_3 %>%
          edad_final_2573 = interval(as.Date(fechanacimiento_fe), as.Date(fecha_activ_final_2573_1)) / years(1),
          edad_final_3505 = interval(as.Date(fechanacimiento_fe), as.Date(fecha_activ_final_3505_1)) / years(1),
          edad_final_3543 = interval(as.Date(fechanacimiento_fe), as.Date(fecha_activ_final_3543_1)) / years(1),
+         abandono = ifelse(is.na(num_oferta), 1, abandono),
+         meses = 
          act_post_abandono = ifelse(abandono ==0, NA, act_post_abandono),
          edad_ingreso = interval(as.Date(fechanacimiento_fe), as.Date('2019-03-01')) / years(1)) %>% 
    mutate(num_oferta = 907,
-          gen = 2019,
           nom_oferta='CONTADOR PUBLICO') %>% 
-   select(id, gen, numerodoc, tipodocumento_fe, pais_doc_fe, sexo_fe,
+   select(id, numerodoc, tipodocumento_fe, pais_doc_fe, sexo_fe,
           fechanacimiento_fe, cod_deptonacimiento_fe, cod_paisnacimiento_fe,
           sd_1_1_fe, sd_1_2_fe, sd_3_1_fe, sd_3_2_fe, sd_3_3_fe, sd_4_fe,
           ascendencia_principal_fe, sd_8_fe, sd_9_fe, sd_10_fe, sd_11_1_fe,
           sd_11_2_fe, sd_11_3_fe, sd_11_4_fe, sd_11_7_fe, educ_padre_fe,
           educ_madre_fe, ep_14_4_1_fe, ep_14_4_2_fe, ep_14_4_3_fe, t_15_fe, 
-          t_16_fe,fecha_insc_plan,edad_ingreso, num_oferta, nom_oferta, in_administracion, in_economia,
+          t_16_fe,edad_ingreso, num_oferta, nom_oferta, in_administracion, in_economia,
           eventos_tot, eventos_2019_1, eventos_2019_2, eventos_2020_1, 
           eventos_2020_2, eventos_2021_1, eventos_2021_2, eventos_2022_1,
           eventos_2022_2, eventos_2023_1, eventos_2023_2, 
-          promedio_aprobaciones, promedio_general,creditos_obtenidos, oferta_2573_1,
+          promedio_aprobaciones, promedio_general, oferta_2573_1,
           cursadas_2573_1, aprobada_act_2573_1, anio_aprobada_2573_1,
           fecha_activ_inicial_2573_1, fecha_activ_final_2573_1,
           edad_final_2573, oferta_3462_1,
@@ -208,4 +224,80 @@ df_4 <- df_3 %>%
 write_dta(df_4, 'datos_limpios/Act_2024_limpio.dta')
 
 
+## persona que se matriculo pero no tuvo actividad no es un abandono 
+## como se distribuye la variable 
 
+
+## Survival Analysis 
+
+library(survival)
+library(survminer)
+library(tidyverse)
+
+unas_sola= todos_act %>% distinct(id, .keep_all = TRUE)
+act_w_carr=left_join(act_wide,select(unas_sola,nom_oferta,id),by="id")
+
+aact_w_carr = a %>%
+  filter(!nom_oferta %in% c(
+    "LICENCIATURA EN ADMINISTRACION",
+    "TECNOLOGO EN ADMINISTRACION Y CONTABILIDAD",
+    "TECNICO EN ADMINISTRACION"
+  ))
+
+
+
+datos_surv <- a %>%
+  mutate(across(starts_with("fecha_"), as.Date)) %>% 
+  rowwise() %>%
+  mutate(
+    fecha_inicio = min(c_across(starts_with("fecha_activ_inicial")), na.rm = TRUE),
+    fecha_fin = max(c_across(starts_with("fecha_activ_final")), na.rm = TRUE)
+  ) %>%
+  ungroup()
+
+
+datos_surv <- datos_surv %>%
+  mutate(
+    tiempo_meses = interval(fecha_inicio, fecha_fin) / days(1)
+  )
+
+
+datos_surv <- datos_surv %>%
+  mutate(
+    abandono = ifelse(fecha_fin < as.Date("2022-12-31"), 1, 0)
+  )
+
+
+
+surv_obj <- Surv(time = datos_surv$tiempo_meses, event = datos_surv$abandono)
+
+km_fit <- survfit(surv_obj ~ 1, data = datos_surv)
+
+max(datos_surv$fecha_fin)
+
+ggsurvplot(km_fit,
+           conf.int = F,
+           xlab = "Meses desde ingreso",
+           ylab = "Probabilidad de supervivencia",
+           ggtheme = theme_minimal())
+
+
+
+km_carr <- survfit(Surv(tiempo_meses, abandono) ~nom_oferta, data = datos_surv)
+
+ggsurvplot(
+  km_carr, data = datos_surv,
+  conf.int = TRUE,
+  xlab = "Meses desde ingreso", ylab = "Probabilidad de supervivencia",
+  ggtheme = theme_minimal()
+)
+
+
+
+datos_surv$abandono
+datos_surv
+
+
+
+
+          

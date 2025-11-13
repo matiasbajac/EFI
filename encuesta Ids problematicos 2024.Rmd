@@ -1,0 +1,139 @@
+---
+title: "Respuesta Encuesta"
+subtitle: "Ids problematicos con la definicion de Abandono"
+author: "Jimena Padin"
+date: "2025"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(haven)
+library(readxl)
+```
+
+```{r}
+marco <- read_dta("bases EFI 2025/marco muestral 2024/marco muestral.dta")
+todos_act <- read_dta("bases EFI 2025/TODOS Cdor actividades_EFI2024.dta")
+todos_form <- read_dta("bases EFI 2025/TODOS Cdor form_ingreso_ EFI2024.dta")
+todos_insc <- read_dta("bases EFI 2025/datos_persona Cdor_id_numerodoc_EFI2024.dta")
+muestra <- read_excel("bases EFI 2025/Muestra Cdor_EFI2024.xls", 
+    sheet = "muestra")
+encuesta <- read_excel("bases EFI 2025/encuesta Cdor_EFI2024.xlsx")
+```
+
+
+Bajo la definición utilizada en la EFI 2024, un estudiante se encuentra en condición de _abandono_ si el mismo tuvo alguna actividad desde que se inscribió en la carrera de __Contador Publico__ y no tuvo actividad por al menos un año a la fecha. Tomando en cuenta que los datos de actividad se encuentran hasta diciembre 2023 y que el año lectivo empieza en marzo, todo estudiante el cual la ultima fecha de actividad es anterior a marzo 2023 se encuentra en condición de abandono. 
+
+```{r}
+ci_marco <- marco$numerodoc %>% unique()
+ci_act <- todos_act$numerodoc %>% unique()
+abandono_sin_act <- setdiff(ci_marco, ci_act)
+#todos_act %>% filter(numerodoc%in%abandono_sin_act)
+```
+
+Analizando el marco muestral (todos los estudiantes en condición de abandono), encontramos ciertas incongruencias con la definición antes planteada; `r length(abandono_sin_act)` estudiantes se encuentran en el marco muestral peor no presentan ninguna actividad. 
+
+```{r}
+ci_form <- todos_form$numerodoc %>% unique()
+abandono_sin_form <- setdiff(ci_marco, ci_form)
+#todos_form %>% filter(numerodoc%in%abandono_sin_form)
+```
+
+
+A su vez se cuenta con los datos de los estudiantes que completaron el formulario de ingreso, instrumento interno que utilizan los servicios universitarios para registrar y dar seguimiento a la trayectoria académica de los estudiantes de grado ( _el formulario es el completado en el año de ingreso?_), por lo que tal vez la definición incluye la completaron del formulario como forma de actividad. Sin embargo, de todos los estudiantes en el marco muestral existen `r length(abandono_sin_form)` que no lo completaron.
+
+```{r}
+abandono_solo_insc <- setdiff(abandono_sin_act, ci_form)
+#todos_act %>% filter(numerodoc%in%abandono_solo_insc)
+#todos_form %>% filter(numerodoc%in%abandono_solo_insc)
+#todos_insc %>% filter(numerodoc%in%abandono_solo_insc) %>% nrow()
+aban_insc_muestra <- muestra %>% filter(numerodoc%in%abandono_solo_insc) %>% pull(numerodoc)
+aban_insc_encuesta <- encuesta %>% filter(`Ingresa la CI`%in%aban_insc_muestra) %>% pull(`Ingresa la CI`)
+```
+
+
+En total, existen `r length(abandono_solo_insc)` estudiantes en el marco muestral que aparecen solo como inscritos en la carrera y no presentan ningún tipo de actividad ni completaron el formulario. De los mismos tan solo `r length(aban_insc_muestra)` quedaron seleccionados en la muestra, y solamente `r length(aban_insc_encuesta)` realmente completaron la encuesta.
+
+Se va a investigar todos los datos disponibles de estos individuos.
+
+# Contextualizar bajo inscripción
+
+```{r, results='hide'}
+todos_insc %>% filter(numerodoc%in%abandono_solo_insc) %>% 
+   pull(estado_insc) %>% table()
+todos_insc %>% filter(numerodoc%in%abandono_solo_insc) %>% 
+   pull(creditos_obtenidos) %>% table()
+```
+
+Todos los estudiantes tienen inscripción completa, ninguno por cambio de plan. Sin embargo, hay 3 estudiantes que tienen cantidad de créditos distintos a 0. Uno con 10, otro con 235 y otro con 285. Estos pueden ser que estén inscripto en otra carrera que sume créditos en contador publico (revalida automática?).
+
+```{r}
+aban_mas0 <- todos_insc %>% filter(numerodoc%in%abandono_solo_insc, creditos_obtenidos!=0) %>% 
+   pull(numerodoc)
+```
+
+
+# Contextualizar bajo marco muetral
+
+```{r, results='hide'}
+marco_aban <- marco %>% filter(numerodoc%in%abandono_solo_insc)
+marco_aban$mujer %>% table()
+
+marco_aban$bach_priv %>% table()
+marco_aban$bach_pub %>% table()
+marco_aban %>% filter(bach_priv==0, bach_pub==0) %>% View()
+marco_aban$bach_ext %>% table()
+
+marco_aban$bach_sec %>% table()
+marco_aban$bach_tec %>% table()
+marco_aban %>% filter(bach_sec==0, bach_tec==0) %>% View()
+
+marco_aban$bach_mdeo %>% table()
+
+marco_aban$unaño_sinact %>% table()
+marco_aban$masunaño_sinact %>% table()
+```
+
+10 hombres y 8 mujeres
+
+2 fueron a bachillerato privado, 11 fueron a bachillerato publico, los otros 5 fueron a bachillerato en el exterior.
+
+7 bachillerato secundaria, 4 bachillerato tecnológico, los otros 7 son los que hicieron privado o exterior.
+
+6 bachillerato Montevideo.
+
+todos tienen mas de un año sin actividad (tiene sentido)
+
+# Contextualizar bajo encuesta
+
+```{r}
+encuesta %>% filter(`Ingresa la CI`%in%aban_insc_encuesta) %>% View()
+```
+
+De las dos personas, una admite que no abandono la carrera y la retomo en 2024, por lo que se podrían encontrar actividad en datos actualizado 2025 (revisar). El resto de las preguntas no las contestó.
+
+El otro estudiante (masculino, bachillerato tecnológico en el interior) admite que abandonó la carrera [1] y no retomó en 2024 [2], sin embargo menciona que 'Siempre asistió' a clases durante su trayectoria [3].
+
+A la hora de la inscripción vivía en Montevideo, solo y no es pensión o residencia [12].
+
+Los motivos a inscripción refieren a los _ingresos salarias_, el _prestigio_ y mas a la preferencia de la carrera que al descarte ( _vocación_, _le gusta la profesión_, _recibió orientación_, _iba bien con materias similares_) [5].
+
+El principal motivo de abandono refiere a lo _laboral_, remarcando también motivos _económicos_, _familiares_, _distancia de la facultad al hogar/trabajo_ y _masividad de grupos_ [4]. Se puede ver que no hubo una desmotivación personal con la carrera, los motivos son externos.
+
+Participo en el curso introductorio [6] y le sirvió, no conocía tutorias entre pares [7]. No se inscribió a ninguna beca [8], las conocía pero no las necesitaba.
+
+Empezó a trabajar en 2016 y estaba trabajando a la fecha de inscribirse [15-16-17], 60hs a la semana, por necesidad económica. Menciona que lo enseñado sirvió mucho en la formación laboral [19].
+
+A pesar de que en motivos de abandono no se marcó _Falta de amigos_, el estudiante no entro con amigos a la FCEA y no tenia grupo de estudio, a pesar de haber asistido a eventos de facultad [23]. Tuvo docentes con los que sentía que podía contar para dudas y no tuvo problema con el personal a la hora de realizar transmites, pero no se sentía a gusto en la facultad [24]. Esto puede estar relacionado con que menciona que la facultad NO podría haber hecho algo para evitar el abandono [9].
+
+Considera que un docente orientador o estudiante avanzado hubiera sido de mucha ayuda, pero no clases e apoyo en el 1er año [10].
+
+Respecto al bachillerato, terminado en 2017, considera que la UTU lo preparó mal. 
+
+Durante el primer año de facultad se consideró un estudiante promedio. Considera una buena gestión de tiempo, buena planificación y respetuoso con los tiempos [12].
+
+En relación al covid este fue afectado desfavorablemente, pero ninguna de las causas estipuladas en la encuesta fueron marcadas como inconvenientes (horarios superpuestos, falta de contacto con estudiantes y docentes).
+
+

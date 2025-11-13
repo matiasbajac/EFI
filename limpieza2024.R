@@ -121,9 +121,9 @@ df_1 <- todos_act %>%
          act_post_abandono = fun_act_post_abandono(df)
       )
    })
-
+todos_act$nom_oferta
 # se va a poner informacion desagregada para las materias comunes para economia y contador publico
-actividades = todos_act  %>%  
+
   filter(nom_oferta == "CONTADOR PUBLICO" & codigo_mat %in% c(3505, 3462, 3539, 2573, 3378,3543)) %>%    
   mutate(carrera = 1) %>% 
   pivot_wider(names_from = "nom_oferta", values_from = "carrera", values_fill = 0) %>% 
@@ -158,7 +158,7 @@ actividades = todos_act  %>%
 
 ## si tomamos en cuenta a aquelos individuos que abandonan como los que no tienen actividades en 2023 
 #
-act_curso = actividades %>%  group_by(id)  %>% filter(aprobada_act==1)  %>% filter(fecha_activ_final<as.Date("2022-12-31")) %>%  summarise(cant_materias_aprobadas =  sum(aprobada_act),creditos = 10*cant_materias_aprobadas)
+#act_curso = actividades %>%  group_by(id)  %>% filter(aprobada_act==1)  %>% filter(fecha_activ_final<as.Date("2022-12-31")) %>%  summarise(cant_materias_aprobadas =  sum(aprobada_act),creditos = 10*cant_materias_aprobadas)
 
 act_wide <- actividades %>%
    group_by(id, codigo_mat) %>%
@@ -171,12 +171,12 @@ act_wide <- actividades %>%
 
 
 # agregar actividades a df_1
-df_2 <- full_join(df_1, act_wide,by=c("id"))
+df_2 <- full_join(df_1, act_wide,by=c("id")) 
 
 # agregar df_2 a todos_form
 df_3 <- full_join(todos_form, df_2,by=c("id", 'numerodoc'))
 
-
+df_3$fecha
 # acomodar
 df_4 <- df_3 %>% 
   mutate(edad_final_3462 = interval(as.Date(fechanacimiento_fe), as.Date(fecha_activ_final_3462_1)) / years(1),
@@ -186,6 +186,7 @@ df_4 <- df_3 %>%
          edad_final_3505 = interval(as.Date(fechanacimiento_fe), as.Date(fecha_activ_final_3505_1)) / years(1),
          edad_final_3543 = interval(as.Date(fechanacimiento_fe), as.Date(fecha_activ_final_3543_1)) / years(1),
          abandono = ifelse(is.na(num_oferta), 1, abandono),
+         meses = 
          act_post_abandono = ifelse(abandono ==0, NA, act_post_abandono),
          edad_ingreso = interval(as.Date(fechanacimiento_fe), as.Date('2019-03-01')) / years(1)) %>% 
    mutate(num_oferta = 907,
@@ -227,11 +228,76 @@ write_dta(df_4, 'datos_limpios/Act_2024_limpio.dta')
 ## como se distribuye la variable 
 
 
-muestra =Muestra_Cdor_EFI2024 
+## Survival Analysis 
 
-table(muestra$unaño_sinact)
-table(muestra$masunaño_sinact)
+library(survival)
+library(survminer)
+library(tidyverse)
+
+unas_sola= todos_act %>% distinct(id, .keep_all = TRUE)
+act_w_carr=left_join(act_wide,select(unas_sola,nom_oferta,id),by="id")
+
+aact_w_carr = a %>%
+  filter(!nom_oferta %in% c(
+    "LICENCIATURA EN ADMINISTRACION",
+    "TECNOLOGO EN ADMINISTRACION Y CONTABILIDAD",
+    "TECNICO EN ADMINISTRACION"
+  ))
 
 
-muestra %>% filter()  ggplot() + geom_bar(aes(x= unannñ))
 
+datos_surv <- a %>%
+  mutate(across(starts_with("fecha_"), as.Date)) %>% 
+  rowwise() %>%
+  mutate(
+    fecha_inicio = min(c_across(starts_with("fecha_activ_inicial")), na.rm = TRUE),
+    fecha_fin = max(c_across(starts_with("fecha_activ_final")), na.rm = TRUE)
+  ) %>%
+  ungroup()
+
+
+datos_surv <- datos_surv %>%
+  mutate(
+    tiempo_meses = interval(fecha_inicio, fecha_fin) / days(1)
+  )
+
+
+datos_surv <- datos_surv %>%
+  mutate(
+    abandono = ifelse(fecha_fin < as.Date("2022-12-31"), 1, 0)
+  )
+
+
+
+surv_obj <- Surv(time = datos_surv$tiempo_meses, event = datos_surv$abandono)
+
+km_fit <- survfit(surv_obj ~ 1, data = datos_surv)
+
+max(datos_surv$fecha_fin)
+
+ggsurvplot(km_fit,
+           conf.int = F,
+           xlab = "Meses desde ingreso",
+           ylab = "Probabilidad de supervivencia",
+           ggtheme = theme_minimal())
+
+
+
+km_carr <- survfit(Surv(tiempo_meses, abandono) ~nom_oferta, data = datos_surv)
+
+ggsurvplot(
+  km_carr, data = datos_surv,
+  conf.int = TRUE,
+  xlab = "Meses desde ingreso", ylab = "Probabilidad de supervivencia",
+  ggtheme = theme_minimal()
+)
+
+
+
+datos_surv$abandono
+datos_surv
+
+
+
+
+          

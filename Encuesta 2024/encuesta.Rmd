@@ -1,0 +1,153 @@
+---
+title: "analisis encuesta 2024"
+author: "Matias Bajac"
+date: '2025-11-12'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## librerias 
+```{r}
+library(tidyverse)
+library(ggmosaic)
+```
+Leo los datos 
+```{r}
+encuesta <- read_excel("bases EFI 2025/encuesta Cdor_EFI2024.xlsx")
+encuesta
+```
+
+
+```{r}
+encuesta$`2. ¿Retomaste en 2024?`=as.factor(encuesta$`2. ¿Retomaste en 2024?`)
+encuesta$`1. ¿Consideras que abandonaste la Carrera de Contador Público?`=as.factor(encuesta$`1. ¿Consideras que abandonaste la Carrera de Contador Público?`)
+
+encuesta= encuesta %>%  rename(abandono =`1. ¿Consideras que abandonaste la Carrera de Contador Público?`) %>%  rename(tipo_asistencia = `3. ¿Cómo fue en general tu asistencia a clases de FCEA durante tu trayectoria en la carrera de Contador?`)  
+
+
+encuesta = encuesta %>%  rename(motivos = `4.b. De todas las razones señaladas en la pregunta anterior, ¿cuál consideras que fue la que más incidió en tu decisión?`)
+
+totales = encuesta %>%  group_by(abandono) %>%  summarise(n= n())
+totales
+ 
+ggplot(data= encuesta) + 
+geom_mosaic(aes(x = product(tipo_asistencia), fill = abandono), color = "black") +
+  scale_fill_manual(values = c("#4E79A7", "#F28E2B")) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "tipo_asistencia", y = "Proporción (%)", fill = "considera abandono") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+
+encuesta2 =encuesta %>% select(abandono,tipo_asistencia) 
+
+encuesta2 = encuesta2 %>% 
+  mutate(
+    tipo_asistencia = case_when(
+      tipo_asistencia %in% c("Asistí poco", "Casi nunca asistí") ~ "Nunca asistí",
+      tipo_asistencia %in% c("Casi siempre asistí", "Siempre asistí") ~ "Siempre asistí",
+      is.na(tipo_asistencia) ~ NA_character_,  # preserva los NA
+      TRUE ~ tipo_asistencia                  # mantiene cualquier otro valor original
+    ),
+    tipo_asistencia = factor(
+      tipo_asistencia,
+      levels = c("Nunca asistí", "Siempre asistí")
+    )
+  ) 
+enceusta3 = encuesta2 %>% mutate(conteo=1) %>%   pivot_wider(names_from=tipo_asistencia,values_from=conteo,  values_fill = list(conteo = 0),
+ values_fn = sum)
+
+ggplot(data= encuesta2) + 
+geom_mosaic(aes(x = product(tipo_asistencia), fill = abandono), color = "black") +
+  scale_fill_manual(values = c("#4E79A7", "#F28E2B")) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "tipo_asistencia", y = "Proporción (%)", fill = "considera abandono") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+
+Del siguiente gráfico de mosaico, podemos ver que a priori parece no haber una incidencia directa entre abandonar y asitir a clase, de hecho, cuando lo vemos para sólo los que consideraron haber abandonado la carrera, podemos ver que en proporción son mas lo que respondieron haber asistido a clase. Para esto,se colapso en una variable binaria Asisti (los que decian casi siempre asisti o siempre asiti) y el resto lo consideramos como que no asistieron.
+
+```{r}
+ abandono_Si= encuesta2 %>%  filter(abandono=="Sí")  
+ ggplot(abandono_Si,aes(x=tipo_asistencia)) +
+geom_bar(aes(y=..prop.., fill = factor(..x..),group="e"),stat ="count",show.legend=FALSE) +
+  scale_fill_brewer(palette = "Dark2", type = "qual") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+```
+
+
+
+
+```{r}
+
+encuesta = encuesta %>%
+   mutate( motivos = case_when(is.na(motivos) ~ NA_character_,
+      motivos %in% c(
+        "Tuviste dificultades de adaptación",
+        "No encontraste buena disponibilidad de parte de los profesores",
+        "Distancia de la facultad a tu hogar/trabajo",
+        "Motivos económicos",
+        "Problemas relacionados a la estructura curricular (ej.: previaturas, límite de cursado)"
+      ) ~ "Institucionales",
+      TRUE ~ "Personales",
+    ),
+    motivos = factor(motivos, levels = c("NA","Institucionales","Personales")))
+  
+
+
+
+
+ggplot(encuesta,aes(x=motivos)) +
+geom_bar(aes(y=..prop.., fill = factor(..x..),group="e"),stat ="count",show.legend=FALSE) +
+  scale_fill_brewer(palette = "Dark2", type = "qual") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+           
+
+
+
+
+
+
+
+
+
+
+
+```
+
+```{r}
+zonas= encuesta %>%  select(abandono,`13. Cuando comenzaste el primer año de la carrera de Contador Público, ¿en qué departamento vivías?`) %>%  rename(zona = `13. Cuando comenzaste el primer año de la carrera de Contador Público, ¿en qué departamento vivías?`)   %>%  mutate(zona = case_when(is.na(zona) ~ "NA",
+                              zona == "Montevideo" ~ "Montevideo",
+                              TRUE ~ "Interior") |>
+           factor(levels = c("Montevideo","Interior","NA")))
+
+
+ggplot(zonas,aes(x=zona,fill=abandono)) + geom_bar(aes(y=..prop.., fill = factor(..x..),group="e"),stat ="count",show.legend=FALSE) + scale_fill_brewer(palette = "Dark2", type = "qual") + scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+
+ggplot(zonas,aes(x=zona,fill=abandono)) +   geom_bar(position = "fill") +
+ scale_fill_brewer(palette = "Dark2", type = "qual") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+
+abandono_si = zonas %>%   filter(abandono=="Sí")
+
+
+abandono_si %>%
+  mutate(zona = fct_explicit_na(zona, na_level = "NA")) %>%
+  count(zona) %>%
+  mutate(pct = n / sum(n)) %>%   
+  ggplot(aes(x = zona, y = pct, fill = zona)) +
+  geom_col(show.legend = FALSE) +
+  geom_text(aes(label = scales::percent(pct, accuracy = 1)), 
+            vjust = -0.5) +
+  scale_y_continuous(labels = scales::percent, 
+                     expand = expansion(mult = c(0, .05))) +
+  labs(x = "Zona", y = "Porcentaje")
+
+
+```
+
+ 

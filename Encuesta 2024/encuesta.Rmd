@@ -83,7 +83,6 @@ geom_bar(aes(y=..prop.., fill = factor(..x..),group="e"),stat ="count",show.lege
 
 
 ```{r}
-
 encuesta = encuesta %>%
    mutate( motivos = case_when(is.na(motivos) ~ NA_character_,
       motivos %in% c(
@@ -98,25 +97,10 @@ encuesta = encuesta %>%
     motivos = factor(motivos, levels = c("NA","Institucionales","Personales")))
   
 
-
-
-
 ggplot(encuesta,aes(x=motivos)) +
 geom_bar(aes(y=..prop.., fill = factor(..x..),group="e"),stat ="count",show.legend=FALSE) +
   scale_fill_brewer(palette = "Dark2", type = "qual") +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1))
-           
-
-
-
-
-
-
-
-
-
-
-
 ```
 
 ```{r}

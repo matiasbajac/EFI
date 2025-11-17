@@ -1,0 +1,319 @@
+---
+title: "Untitled"
+author: "Jimena Padin"
+date: "2025-11-12"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+library(tidyverse)
+library(haven)
+library(readxl)
+library(ggmosaic)
+```
+
+```{r}
+marco <- read_dta("../bases EFI 2025/bases EFI 2017/marco muestral.dta")
+todos_act <- read_dta("../bases EFI 2025/TODOS Cdor actividades_EFI2024.dta")
+todos_form <- read_dta("../bases EFI 2025/TODOS Cdor form_ingreso_ EFI2024.dta")
+todos_insc <- read_dta("../bases EFI 2025/datos_persona Cdor_id_numerodoc_EFI2024.dta")
+muestra <- read_excel("../bases EFI 2025/Muestra Cdor_EFI2024.xls", 
+    sheet = "muestra")
+encuesta <- read_excel("../bases EFI 2025/encuesta Cdor_EFI2024.xlsx")
+```
+
+# Comentario docente
+
+Jimena y Matías – Encuesta 2024
+
+Responder objetivos específicos (motivos – person e instit), abandono instrucc vs sistémico (misma carrera vs otra carrera)
+
+Caracterización de los abandono (marco muestral) vs los q abandonan enc vs los q continúan vs egresan _esto no se pudo hacer esta semana debido a que tenemos que cambiar la definicion de abandono porque no coincide con lo hecho otros años, hay que limpiar los registros administrativos para hacer esta conparacion, pero podemos caracterizar el abandono. si unimos actividad 2025 se podria contextualizar los abandono que regresaron y los que no_
+
+# Objetivos
+
+Conocer el abandono universitario para las carreras de Licenciatura en Economia (generacion 2012) y Contador Publico (generacion 2019), acarcterizando a quienes abandonan, continuan y egresan. _documentos: formulario ingresos, registros administrativos, base egresados_
+
+## Objetivos especificos
+
+1.  Comparar el abandono entre ambas carreras, evaluando si las diferencias observadas se deben a las características propias de cada programa o a las de los estudiantes que las cursan (por ejemplo, analizar si una mayor proporción de mujeres en una carrera explica la diferencia en las tasas de abandono, más que la carrera en sí).
+
+
+2a.  Distinguir entre abandono instruccional y abandono sistémico, considerando:
+
+  -  Abandono instruccional: cuando el estudiante continúa cursando estudios terciarios, aunque sea en otra carrera o institución (evaluado a partir de las encuestas).
+
+  -  Abandono sistémico: cuando el estudiante deja de cursar estudios terciarios de forma total.Abndono instruccional (cambio de carrera) vs sistemico (dejo de estudiar). Instruccional refiere a que haya seguido estudios terciarios, incluso si no son en udelar _documentos: evaluado en encuestas_
+
+2b.  Asimismo, se busca caracterizar a quienes retoman estudios, diferenciando entre quienes lo hacen en la misma carrera y quienes migran a otra _documentos: base nico y enceustas_
+
+3.  Distinguir entre causas institucionales (vinculadas a la organización, docencia o gestión universitaria) y personales (situación económica, familiar, motivacional, entre otras) en relacion al abandono. _documentos: encuestas_
+
+
+# Contextualizar encuesta
+
+A partir del marco muestral definido en 2024, el cual conta de `r nrow(marco)` estudiantes en situacion de abandono, se selecciono una muestra estratificada ( _no tenemos info ni pesos de como se hizo_), la cual consta de `r nrow(muestra)` elementos. Sin embargo, tan solo el `r nrow(encuesta)/nrow(muestra)`% contesto la encuesta.
+
+Cave destacar que la primer pregunta de la encuesta era si el encuestado consideraba que habia abandonado la carrera, donde 21 estudiantes indicaron que _No_, mientras que 65 señalan que _Si_. Cabe destacar que 12 de la spersonas que dijeron que no habian abandonado y habian retomado en 2024 no contestaron mas preguntas.
+
+```{r}
+encuesta <- encuesta %>% filter(!is.na(`3. ¿Cómo fue en general tu asistencia a clases de FCEA durante tu trayectoria en la carrera de Contador?`))
+```
+
+
+Es interesante usar esta pregunta para observar si cambain ciertas respuestas cruciales que pueden ser hacer referencia a algun problema institucional ( _alguien que no abandono pero no tiene actividad hace mas de un año puede señalar falta de oportunidad?_).
+
+# Inicio de encuesta
+
+```{r}
+encuesta$`2. ¿Retomaste en 2024?`=as.factor(encuesta$`2. ¿Retomaste en 2024?`)
+encuesta$`1. ¿Consideras que abandonaste la Carrera de Contador Público?`=as.factor(encuesta$`1. ¿Consideras que abandonaste la Carrera de Contador Público?`)
+
+encuesta= encuesta %>%  rename(abandono =`1. ¿Consideras que abandonaste la Carrera de Contador Público?`) %>%  rename(tipo_asistencia = `3. ¿Cómo fue en general tu asistencia a clases de FCEA durante tu trayectoria en la carrera de Contador?`) %>% mutate(tipo_asistencia = factor(tipo_asistencia, levels = c("Nunca asisti", "Casi nunca asisti", "Asistí poco" , "Casi siempre asisti", "Siempre asistí", NA)))
+
+
+encuesta = encuesta %>%  rename(motivos = `4.b. De todas las razones señaladas en la pregunta anterior, ¿cuál consideras que fue la que más incidió en tu decisión?`)
+
+totales = encuesta %>%  group_by(abandono) %>%  summarise(n= n())
+#totales
+ 
+ggplot(data= encuesta) + 
+geom_mosaic(aes(x = product(tipo_asistencia), fill = abandono), color = "black") +
+  scale_fill_manual(values = c("#4E79A7", "#F28E2B")) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "tipo_asistencia", y = "Proporción (%)", fill = "considera abandono", caption='proporciones de tipo de asistencia por condicion de abandono') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+
+encuesta2 =encuesta %>% select(abandono,tipo_asistencia) 
+
+encuesta2 = encuesta2 %>% 
+  mutate(
+    tipo_asistencia = case_when(
+      tipo_asistencia %in% c("Nunca asisti", "Casi nunca asisti") ~ "Nunca asistí",
+      tipo_asistencia == "Asistí poco" ~ "Asistí poco",
+      tipo_asistencia %in% c("Casi siempre asisti", "Siempre asistí") ~ "Siempre asistí",
+      is.na(tipo_asistencia) ~ NA_character_,  # preserva los NA
+      TRUE ~ tipo_asistencia                  # mantiene cualquier otro valor original
+    ),
+    tipo_asistencia = factor(
+      tipo_asistencia,
+      levels = c("Nunca asistí","Asistí poco", "Siempre asistí")
+    )
+  ) 
+enceusta3 = encuesta2 %>% mutate(conteo=1) %>%   pivot_wider(names_from=tipo_asistencia,values_from=conteo,  values_fill = list(conteo = 0),
+ values_fn = sum)
+
+ggplot(data= filter(encuesta2, !is.na(tipo_asistencia))) + 
+geom_mosaic(aes(x = product(tipo_asistencia), fill = abandono), color = "black") +
+  scale_fill_manual(values = c("#4E79A7", "#F28E2B")) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "tipo_asistencia", y = "Proporción (%)", fill = "considera abandono") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+encuesta$`3. ¿Cómo fue en general tu asistencia a clases de FCEA durante tu trayectoria en la carrera de Contador?` %>% table()
+```
+
+Del siguiente gráfico de mosaico, podemos ver que a priori parece no haber una incidencia directa entre abandonar y asitir a clase, de hecho, cuando lo vemos para sólo los que consideraron haber abandonado la carrera, podemos ver que en proporción son mas lo que respondieron haber asistido a clase. Para esto,se colapso en una variable binaria Asisti (los que decian casi siempre asisti o siempre asiti) y el resto lo consideramos como que no asistieron.
+
+```{r}
+ abandono_Si= encuesta2 %>%  filter(abandono=="Sí")  
+ ggplot(abandono_Si,aes(x=tipo_asistencia)) +
+geom_bar(aes(y=..prop.., fill = factor(..x..),group="e"),stat ="count",show.legend=FALSE) +
+  scale_fill_brewer(palette = "Dark2", type = "qual") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+```
+
+```{r}
+
+```
+
+```{r}
+encuesta = encuesta %>%
+   mutate( motivos = case_when(is.na(motivos) ~ NA_character_,
+      motivos %in% c(
+        "Tuviste dificultades de adaptación",
+        "No encontraste buena disponibilidad de parte de los profesores",
+        "Distancia de la facultad a tu hogar/trabajo",
+        "Motivos económicos",
+        "Problemas relacionados a la estructura curricular (ej.: previaturas, límite de cursado)"
+      ) ~ "Institucionales",
+      TRUE ~ "Personales",
+    ),
+    motivos = factor(motivos, levels = c("NA","Institucionales","Personales")))
+  
+
+ggplot(encuesta,aes(x=motivos)) +
+geom_bar(aes(y=..prop.., fill = factor(..x..),group="e"),stat ="count",show.legend=FALSE) +
+  scale_fill_brewer(palette = "Dark2", type = "qual") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+```
+
+```{r}
+zonas= encuesta %>%  select(abandono,`13. Cuando comenzaste el primer año de la carrera de Contador Público, ¿en qué departamento vivías?`) %>%  rename(zona = `13. Cuando comenzaste el primer año de la carrera de Contador Público, ¿en qué departamento vivías?`)   %>%  mutate(zona = case_when(is.na(zona) ~ "NA",
+                              zona == "Montevideo" ~ "Montevideo",
+                              TRUE ~ "Interior") |>
+           factor(levels = c("Montevideo","Interior","NA")))
+
+
+ggplot(zonas,aes(x=zona,fill=abandono)) + geom_bar(aes(y=..prop.., fill = factor(..x..),group="e"),stat ="count",show.legend=FALSE) + scale_fill_brewer(palette = "Dark2", type = "qual") + scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+
+ggplot(zonas,aes(x=zona,fill=abandono)) +   geom_bar(position = "fill") +
+ scale_fill_brewer(palette = "Dark2", type = "qual") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+
+abandono_si = zonas %>%   filter(abandono=="Sí")
+
+
+abandono_si %>%
+  mutate(zona = fct_explicit_na(zona, na_level = "NA")) %>%
+  count(zona) %>%
+  mutate(pct = n / sum(n)) %>%   
+  ggplot(aes(x = zona, y = pct, fill = zona)) +
+  geom_col(show.legend = FALSE) +
+  geom_text(aes(label = scales::percent(pct, accuracy = 1)), 
+            vjust = -0.5) +
+  scale_y_continuous(labels = scales::percent, 
+                     expand = expansion(mult = c(0, .05))) +
+  labs(x = "Zona", y = "Porcentaje")
+```
+# otra cosa
+
+```{r}
+((filter(encuesta, abandono=='Sí')[, 46] %>% table())/nrow(filter(encuesta, abandono=='Sí'))) %>% round(2)
+
+((filter(encuesta, abandono=='Sí')[, 47] %>% table())/nrow(filter(encuesta, abandono=='Sí'))) %>% round(2)
+```
+
+tabla para los que si abandonaron
+
+Importante que no se conocia programa tutorias (relevante para problema institucional si no promocionan la ayuda).
+
+
+
+```{r}
+encuesta$`Beca:conocia no gocé` <- encuesta[,52] %>% pull()
+encuesta$`Beca:no necesitaba` <- encuesta[,53] %>% pull()
+encuesta$`Beca:no conocia y necesitaba` <- encuesta[,54] %>% pull()
+encuesta %>% group_by(`Beca:conocia no gocé`,`Beca:no necesitaba`,`Beca:no conocia y necesitaba`) %>% summarise(n=n())
+```
+ revisar
+ 
+# otro
+
+```{r, echo=T}
+encuesta$`9. ¿Creés que la facultad pudo haber hecho alguna acción para evitar que dejaras la carrera?` %>% table()
+```
+mirar bien el cuales, esta fea la variable
+
+```{r}
+for(columna in names(encuesta[,c(57,58,59)])){
+   cat(columna, '\n')
+   encuesta %>% pull(all_of(columna)) %>% table() %>% print()
+   cat('\n\n')
+}
+```
+mirar unidades que necesitan ayuda porue esta fea la variable para separarla [60].
+
+# familia
+
+```{r}
+for(columna in names(encuesta[,c(61:67)])){
+   cat(columna, '\n')
+   encuesta %>% pull(all_of(columna)) %>% table() %>% print()
+   cat('\n\n')
+}
+```
+
+# trabajo
+
+```{r}
+for(columna in names(encuesta[,c(72:77)])){
+   cat(columna, '\n')
+   encuesta %>% pull(all_of(columna)) %>% table() %>% print()
+   cat('\n\n')
+}
+```
+
+# amistades
+
+```{r}
+for(columna in names(encuesta[,c(78:83)])){
+   cat(columna, '\n')
+   encuesta %>% pull(all_of(columna)) %>% table() %>% print()
+   cat('\n\n')
+}
+```
+
+#docentes y facultad
+
+```{r}
+for(columna in names(encuesta[,c(84:87)])){
+   cat(columna, '\n')
+   encuesta %>% pull(all_of(columna)) %>% table() %>% print()
+   cat('\n\n')
+}
+```
+
+# bachillerato
+
+```{r}
+for(columna in names(encuesta[,c(88, 90, 91)])){
+   cat(columna, '\n')
+   encuesta %>% pull(all_of(columna)) %>% table() %>% print()
+   cat('\n\n')
+}
+```
+
+mirar bachilleratos que hicieron, variable dificil, compara con que tan bien lo preparo
+
+# gestios estudio
+
+```{r}
+for(columna in names(encuesta[,c(92:95)])){
+   cat(columna, '\n')
+   encuesta %>% pull(all_of(columna)) %>% table() %>% print()
+   cat('\n\n')
+}
+```
+
+#covid
+
+```{r}
+for(columna in names(encuesta[,c(96:104)])){
+   cat(columna, '\n')
+   encuesta %>% pull(all_of(columna)) %>% table() %>% print()
+   cat('\n\n')
+}
+```
+
+mirar opciones de otros (?)
+ 
+# Clase 14nov
+
+```{r}
+#analisis sistemico vs instruccional
+# considero solo la gente que me confirmo que si abandono
+
+enc_conf_aba <- encuesta %>% filter(`1. ¿Consideras que abandonaste la Carrera de Contador Público?`=='Sí')
+
+enc_conf_aba <- enc_conf_aba %>% 
+   transmute(numerodoc = `Ingresa la CI`,
+             p4b = `4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Cambio a otra carrera en la UDELAR]`,
+             p4c = `4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Cambio a la misma carrera fuera de la UDELAR]`,
+             p4d = `4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Cambio a otros estudios terciarios fuera de la UDELAR (ej.: magisterio, universidades privadas, UTU-terciaria)]`)
+
+enc_conf_aba <- enc_conf_aba %>%  mutate(p4b = ifelse(p4b=='Si', 1, 0),
+                         p4c = ifelse(p4c=='Si', 1, 0),
+                         p4d = ifelse(p4d=='Si', 1, 0)) %>% 
+   mutate(instruccional = ifelse((p4b+p4c+p4d)==0, 0,1),
+          sistemico = ifelse(instruccional==0, 1, 0))
+enc_conf_aba$instruccional %>% table()
+((enc_conf_aba$instruccional %>% table())/nrow(enc_conf_aba)) %>% round(2)
+#caracterizar sistemico
+```
+
+ 

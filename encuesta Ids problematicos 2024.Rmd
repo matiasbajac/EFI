@@ -12,9 +12,9 @@ library(tidyverse)
 library(haven)
 library(readxl)
 ```
-
+c6be706
 ```{r}
-marco <- read_dta("bases EFI 2025/marco muestral 2024/marco muestral.dta")
+marco <- read_dta("bases EFI 2025/bases EFI 2017/marco muestral.dta")
 todos_act <- read_dta("bases EFI 2025/TODOS Cdor actividades_EFI2024.dta")
 todos_form <- read_dta("bases EFI 2025/TODOS Cdor form_ingreso_ EFI2024.dta")
 todos_insc <- read_dta("bases EFI 2025/datos_persona Cdor_id_numerodoc_EFI2024.dta")

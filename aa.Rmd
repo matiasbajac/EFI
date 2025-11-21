@@ -1,0 +1,133 @@
+---
+title: "Untitled"
+author: "Jimena Padin"
+date: "2025-11-20"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(viridisLite)
+library(fmsb)
+```
+
+```{r}
+cols <- viridis(3)[1:2] 
+
+data.frame(gen = c('2012','2012','2019','2019'),
+           val = c(0.775, 0.225, 0.587, 0.413),
+           tipo = c('Instruccional', 'Sistémico','Instruccional', 'Sistémico')) %>% 
+   ggplot(aes(x=gen,y=val,fill = tipo))+
+   geom_col(aes(x=gen,y=val,fill = tipo))+
+   labs(caption='Figura _. Tipo de abandono según cohorte: instruccional (cambio de carrera terciaria) \n versus sistémico (salida del sistema educativo). Fuente:_____', x='Generación',y='',fill='Tipo abandono')+
+   scale_fill_manual(values = cols)+
+   scale_y_continuous(labels = scales::percent)+
+   geom_text(aes(label = paste0(val*100,'%')), position = position_stack(vjust = 0.5))
+```
+
+```{r}
+library(fmsb)
+
+# --- Datos (ajusta a los tuyos reales) ---
+economia_2012  <- c(51,40, 81.25, 35, 10)
+contador_2019  <- c(57,73, 74.6, 50.8, 23.8)
+dimensiones    <- c('Institucional',"Económico", "Vocacional", "Social", "Salud")
+
+data_radar <- as.data.frame(rbind(
+  max = c(100,100, 100, 100, 100),
+  min = c(0, 0,0, 0, 0),
+  `Economía 2012` = economia_2012,
+  `Contador 2019` = contador_2019
+))
+colnames(data_radar) <- dimensiones
+
+# --- Ajustar márgenes para que no se corte nada ---
+op <- par(mar = c(2, 2, 3, 6))  # abajo, izq, arriba, der
+
+# --- Colores más suaves y ejes más discretos ---
+col_borde <- cols             # azul y rojo más “serios”
+col_rell  <- adjustcolor(col_borde, alpha.f=0.3) # relleno semitransparente
+
+radarchart(
+  data_radar,
+  axistype   = 1,
+  # aspecto de los polígonos
+  pcol       = col_borde,
+  pfcol      = col_rell,
+  plwd       = 2,
+  plty       = 1,
+  # malla / grilla
+  cglcol     = "grey80",
+  cglty      = 1,
+  cglwd      = 0.8,
+  # etiquetas de los radios
+  caxislabels = c("0%", "25%", "50%", "75%", "100%"),
+  calcex      = 0.7,
+  axislabcol  = "grey20",
+  # etiquetas de las variables
+  vlcex      = 0.9
+)
+
+legend(
+  "topright",
+  inset = c(-0.05, 0),
+  legend = rownames(data_radar)[3:4],
+  col    = col_borde,
+  lwd    = 2,
+  bty    = "n"
+)
+
+par(op)  # restaurar par() original
+
+```
+
+```{r}
+data.frame(gen=c('2012','2012','2012',
+                 '2019','2019','2019'),
+           val = c(0, 0.425,0.575,
+                  0.079,0.508,0.397),
+           tipo = factor(c('alta','media','baja',
+                    'alta','media','baja'),levels=c('alta','media','baja'))) %>% 
+   ggplot(aes(x=gen,y=val,fill = tipo))+
+   geom_col(position = 'dodge')+
+   labs(caption='Figura _. Niveles de integración social reportados por los estudiantes que \n abandonaron, según cohorte. Fuente: ______', x='Generación',y='',fill='Integración \n social')+
+   ylim(0,0.65)+
+   scale_fill_viridis_d()+
+   scale_y_continuous(labels = scales::percent, limits = c(0,0.65))+
+   geom_text(aes(label = paste0(val*100,'%')), vjust=-0.5,position = position_dodge(0.9))
+
+```
+
+```{r}
+data.frame(gen=c('2012','2012','2012',
+                 '2019','2019','2019'),
+           val = c(0.0875, 0.45,0.46,
+                  0.032,0.444,0.524),
+           tipo = factor(c('alta','media','baja',
+                    'alta','media','baja'),levels=c('alta','media','baja'))) %>% 
+   ggplot(aes(x=gen,y=val,fill = tipo))+
+   geom_col(position = 'dodge')+
+   labs(caption='Figura _. Niveles de vulnerabilidad academica reportados por los estudiantes que \n abandonaron, según cohorte. Fuente: ______', x='Generación',y='',fill='Vulnerabilidad \n académica')+
+   scale_fill_viridis_d()+
+   scale_y_continuous(labels = scales::percent,limits=c(0,0.55))+
+   geom_text(aes(label = paste0(val*100,'%')), vjust=-0.5,position = position_dodge(0.9))
+
+```
+
+```{r}
+data.frame(gen=c('2012','2012','2012',
+                 '2019','2019','2019'),
+           val = c(0, 0.0625,0.9375,
+                  0.016,0.397,0.587),
+           tipo = factor(c('alta','media','baja',
+                    'alta','media','baja'),levels=c('alta','media','baja'))) %>% 
+   ggplot(aes(x=gen,y=val,fill = tipo))+
+   geom_col(position = 'dodge')+
+   labs(caption='Figura _. Niveles de presión económica reportados por los estudiantes que \n abandonaron, según cohorte. Fuente: ______', x='Generación',y='',fill='Presión \n económica')+
+   scale_fill_viridis_d()+
+   scale_y_continuous(labels = scales::percent,limits = c(0,1))+
+   geom_text(aes(label = paste0(val*100,'%')), vjust=-0.5,position = position_dodge(0.9))
+
+```
+

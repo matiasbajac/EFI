@@ -1,0 +1,253 @@
+---
+title: "Diccionario variables"
+subtitle: 'Estudio preliminar'
+author: "Jimena Padin"
+date: "2025-10-30"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(haven)
+library(tidyverse)
+library(kableExtra)
+library(readxl)
+```
+
+# EFI 2017
+
+```{r}
+Mat_Lec_efi2017 <- read_dta('Matriculados Lec_EFI2017.dta')
+Act_Lec_efi2017 <- read_dta('Actividades Lec_EFI2017.dta')
+Muestra_Lec_efi2017 <- read_xlsx('Muestra Lec_EFI2017.xlsx')
+Encuesta_Lec_efi2017 <- read_excel('encuesta_EFI2017.xls')
+```
+
+## Registros administrativos
+
+[`Matriculados Lec_EFI2017.dta`]{.underline}
+
+-  __`estci`:__ cédula del estudiante, sin puntos ni guiones ni dígito verificador. Rango [`r range(Mat_Lec_efi2017$estci)%>% format(scientific=F)`].
+
+-  __`gen`:__ generación de ingreso. Años: [`r unique(Mat_Lec_efi2017$gen)`].
+
+-  __`julio`:__ el estudiante ingreso en periodo de julio. Dicotómica (0 = `r sum(ifelse(Mat_Lec_efi2017$julio==0,1,0))` estudiantes, 1 = `r sum(Mat_Lec_efi2017$julio)` estudiantes).
+
+[`Actividades Lec_EFI2017.dta`]{.underline}
+
+No hay estudiantes repetidos. La cantidad de estudiantes en matriculados y actividades no coincide, pero todos los estudiantes que aparecen en matriculación están en actividad.
+
+-  __`gen`:__ generación de ingreso. Años: [`r unique(Act_Lec_efi2017$gen)`].
+
+-  __`carrera`:__ carrera inscripto, ilustrada por numero indicador. Números de referencia: 11 = ' _ingresar carrera?_', 12 = ' _licenciatura en economía?_'. (11 = `r sum(ifelse(Act_Lec_efi2017$carrera==11,1,0))` estudiantes, 12 = `r sum(ifelse(Act_Lec_efi2017$carrera==12,1,0))` estudiantes).
+
+-  __`ci`:__ cédula del estudiante, sin puntos ni guiones ni dígito verificador. Rango [`r range(Act_Lec_efi2017$ci) %>% format(scientific=F)`].
+
+-  __`nombre_estudiante`:__ variable caracter, nombre del estudiante
+
+
+-  __`sexo`:__ sexo del estudiante. Dicotómica (F = `r sum(ifelse(Act_Lec_efi2017$sexo%in%c('f','F'),1,0))` estudiantes, M = `r sum(ifelse(Act_Lec_efi2017$sexo%in%c('m','M'),1,0))`, NA = `r sum(is.na(Act_Lec_efi2017$sexo))`).
+
+-  __`instituto`:__ variable caracter. Nombre de la institución donde asistió previo a la inscripción a la carrera (incluido *ART. 36: 80 CRÉD. / PRIMER AÑO*).
+
+-  __`fechaingreso`:__ Fecha de ingreso a la carrera (*inscripción a actividad?*). Formato *año día mes*. Rango [`r range(Act_Lec_efi2017$fechaingreso, na.rm=T)`]
+
+-  __`inscripcion`:__ variable caracter. Tipo de inscripción. Categorías: `r Act_Lec_efi2017$inscripcion %>% unique()`.
+
+-  __`observaciones`:__ variable caracter. Define observación por algún tipo de pase respecto a previaturas previo inscripción (ej: revalida exterior, art36, utu).
+
+-  __`direccion`:__ variables caracter. Dirección del estudiante.
+
+-  __`telefono`:__ variables caracter. Teléfono del estudiante.
+
+-  __`mail_est`:__ variables caracter. Mail del estudiante.
+
+-  __`in_administracion`:__ el estudiante esta inscripto en la carrera de licenciatura en administración. Dicotómica (curso = `r sum(ifelse(Act_Lec_efi2017$in_administracion=='Curso',1,0))`, no = `r sum(ifelse(Act_Lec_efi2017$in_administracion=='no',1,0))`, NA = `r sum(is.na(Act_Lec_efi2017$in_administracion))`).
+
+-  __`in_contabilidad`:__ el estudiante esta inscripto en la carrera de contador publico. Dicotómica (En Curso = `r sum(ifelse(Act_Lec_efi2017$in_contabilidad=='En Curso',1,0))`, no = `r sum(ifelse(Act_Lec_efi2017$in_contabilidad=='no',1,0))`, NA = `r sum(is.na(Act_Lec_efi2017$in_administracion))`).
+
+-  __`julio`:__ *no se que es?*. Categorías: `r Act_Lec_efi2017$julio %>% unique()`.
+
+-  __`trayectoria15`:__ tipo de institución a la que perteneció el estudiante antes de ingresar a la carrera. `r Act_Lec_efi2017$trayectoria15 %>% table() %>% kableExtra::kable()`
+
+-  __`trayectoria6`:__ tipo de institución a la que perteneció el estudiante antes de ingresar a la carrera. Los datos no coinciden con `trayectoria 15`, no se cual es la diferencia. `r Act_Lec_efi2017$trayectoria6 %>% table() %>% kableExtra::kable()`
+
+-  __`edadingreso`:__ Edad del estudiante al momento del ingreso a la carrera. Rango [`range(Act_Lec_efi2017$edadingreso, rm.na=T)`] (`r sum(is.na(Act_Lec_efi2017$edadingreso))` estudiantes les falta el dato).
+
+-  __`eventos_juliot1`:__ Cantidad de actividades cursadas (*cuentan exámenes también?*), es decir que se hayan inscripto y figure una nota final (ya sea aprobado o desaprobado), durante el primer semestre de cursado del alumno.
+
+-  __`eventost1`:__ Cantidad de actividades cursadas durante el primer año de cursado del alumno.
+
+-  __`eventost2`:__ Cantidad de actividades cursadas hasta segundo año de cursado del alumno.
+
+-  __`eventost3`:__ Cantidad de actividades cursadas hasta tercer año de cursado del alumno.
+
+-  __`eventost4`:__ Cantidad de actividades cursadas hasta cuarto año de cursado del alumno.
+
+```{r, echo=F}
+summary(Act_Lec_efi2017[,19:23]) %>% kableExtra::kable()
+```
+
+-  __`tipo_tray`:__ tipo de trayectoria del estudiante, análisis en 2017. Categorías: `r Act_Lec_efi2017$tipo_tray %>% table() %>% kable()` (*buscar definición de 0 y de siguen mal, definición formal de abandono temprano*).
+
+-  __`aprob_tot`:__ cantidad de materias aprobadas por el alumno al 2017 (no siempre da la suma de las materias aprobadas en 4 años t1-t4). Existen `r sum(is.na(Act_Lec_efi2017$aprob_tot))` alumnos sin datos en la cantidad de materias aprobadas en total y en cada periodo.
+
+-  __`aprobt1`:__ cantidad de materias aprobadas por el alumno en el primer año. Existen `r sum(is.na(Act_Lec_efi2017$aprob_tot))` alumnos sin datos en la cantidad de materias aprobadas en total y en cada periodo.
+
+-  __`aprobt2`:__ cantidad de materias aprobadas por el alumno en el segundo año. Existen `r sum(is.na(Act_Lec_efi2017$aprob_tot))` alumnos sin datos en la cantidad de materias aprobadas en total y en cada periodo.
+
+-  __`aprobt3`:__ cantidad de materias aprobadas por el alumno en el tercer año. Existen `r sum(is.na(Act_Lec_efi2017$aprob_tot))` alumnos sin datos en la cantidad de materias aprobadas en total y en cada periodo.
+
+-  __`aprobt4`:__ cantidad de materias aprobadas por el alumno en el cuarto año. Existen `r sum(is.na(Act_Lec_efi2017$aprob_tot))` alumnos sin datos en la cantidad de materias aprobadas en total y en cada periodo.
+
+-  __`MC10`:__ Materia *Calculo 1*. Define si falta cursarla o cuando el estudiante la salvó. Revisar datos:
+
+```{r, echo=FALSE}
+Act_Lec_efi2017$MC10 %>% table() %>% kable()
+```
+
+-  __`E10`:__ Materia *Introducción a la microeconomia*. Define si falta cursarla o cuando el estudiante la salvó. Revisar datos:
+
+```{r, echo=FALSE}
+Act_Lec_efi2017$E10 %>% table() %>% kable()
+```
+
+-  __`A10`:__ Materia *Administración y gestión de las organizaciones 1*. Define si falta cursarla o cuando el estudiante la salvó. Revisar datos:
+
+```{r, echo=FALSE}
+Act_Lec_efi2017$A10 %>% table() %>% kable()
+```
+
+-  __`C10`:__ Materia *Conceptos contables*. Define si falta cursarla o cuando el estudiante la salvó. Revisar datos:
+
+```{r, echo=FALSE}
+Act_Lec_efi2017$C10 %>% table() %>% kable()
+```
+
+-  __`E30`:__ Materia *Macroeconomia 1*. Define si falta cursarla o cuando el estudiante la salvó. Revisar datos:
+
+```{r, echo=FALSE}
+Act_Lec_efi2017$E30 %>% table() %>% kable()
+```
+
+-  __`MC31`:__ Materia *Calculo 2*. Define si falta cursarla o cuando el estudiante la salvó. Revisar datos:
+
+```{r, echo=FALSE}
+Act_Lec_efi2017$MC31 %>% table() %>% kable()
+```
+
+-  __`S40`:__ Materia *Historia económica mundial*. Define si falta cursarla o cuando el estudiante la salvó. Revisar datos:
+
+```{r, echo=FALSE}
+Act_Lec_efi2017$S40 %>% table() %>% kable()
+```
+
+-  __`E33`:__ Materia *Sistemas de des. Macroeconomicos*. Define si falta cursarla o cuando el estudiante la salvó. Revisar datos:
+
+```{r, echo=FALSE}
+Act_Lec_efi2017$E33 %>% table() %>% kable()
+```
+
+-  __`S30`:__ Materia *población, economía y desarrollo*. Define si falta cursarla o cuando el estudiante la salvó. Revisar datos:
+
+```{r, echo=FALSE}
+Act_Lec_efi2017$S30 %>% table() %>% kable()
+```
+
+-  __`MC30MC41`:__ Materia *Matemática financiera*. Define si falta cursarla o cuando el estudiante la salvó. Revisar datos:
+
+```{r, echo=FALSE}
+Act_Lec_efi2017$MC30MC41 %>% table() %>% kable()
+```
+
+-  __`E41`:__ Materia *Microeconomia 2*. Define si falta cursarla o cuando el estudiante la salvó. Revisar datos:
+
+```{r, echo=FALSE}
+Act_Lec_efi2017$E41 %>% table() %>% kable()
+```
+
+-  __`E51`:__ Materia *Economía de américa latina*. Define si falta cursarla o cuando el estudiante la salvó. Revisar datos:
+
+```{r, echo=FALSE}
+Act_Lec_efi2017$E51 %>% table() %>% kable()
+```
+
+-  __`E50`:__ Materia *Macroeconomia 3*. Define si falta cursarla o cuando el estudiante la salvó. Revisar datos:
+
+```{r, echo=FALSE}
+Act_Lec_efi2017$E50 %>% table() %>% kable()
+```
+
+-  __`MC51`:__ Materia *Estadística 2*. Define si falta cursarla o cuando el estudiante la salvó. Revisar datos:
+
+```{r, echo=FALSE}
+Act_Lec_efi2017$MC51 %>% table() %>% kable()
+```
+
+......... SEGUIR ......... (40 MAS MINIMO)
+
+-  __`H`:__ variable vacía, 'En curso' o 'Provisora'. *No se que es*.
+
+-  __`in_tipo`:__ *no se que es*. Categorías: `r Act_Lec_efi2017$in_tipo %>% unique()`.
+
+-  __`aprobtot`:__ no es igual a `aprob_tot`, tiene valores para estudiantes que en la otra variable no tiene.
+
+-  Las variables `BG`, `BH`, `BI`, `BJ`, `BK` están casi vacíos, con algún dato del tipo ' _ya salvó_'. No se que son.
+
+-  __`BL`:__ esta vacía
+
+-  Las variables `BN` y `BM` son numéricas, pero la mayoría es 0 o NA. no se que es.
+
+-  __`E`:__ parece ser variable referente a sexo, los valores faltantes de dicha variable se encuentran acá. Se deberian combinar.
+
+-  __`F`:__ parece ser variable referente a institucion anterior, los valores faltantes de dicha variable se encuentran acá. Se deberian combinar.
+
+-  __`G`:__ parece ser variable referente a fecha ingreso
+
+-  __`I`:__ parece ser variable referente a observaciones
+
+-  __`J`:__ parece ser variable referente a direccion
+
+-  __`K`:__ parece ser variable referente a telefono
+
+-  __`L`:__ parece ser variable referente a mail
+
+-  __`M`:__ parece ser variable de numero celular del estudiante
+
+-  __`celu_est`:__ variable vacia
+
+-  __`eventos_juliot1`:__ parece ser variable referente a `eventos_julio_t1`, los valores faltantes de dicha variable se encuentran acá. Se deberian combinar.
+
+- __`R`:__ variable vacia
+
+## Encuesta
+
+[Muestra Lec_EFI2017.xlsx]{.underline}
+
+-  __`Encuestador`:__ nombre del encuestador.
+
+-  __`ID`:__ id del estudiante a encuestar, mergear con encuesta para ver la no respuesta.
+
+-  __`estci`:__ cedula del estudiante a encuestar.
+
+-  __`gen`:__ generacion del estudiante a encuestar. [`r Muestra_Lec_efi2017$gen %>% unique()`].
+
+-  __`nomest`:__ nombre del estudiante a encuestar.
+
+[Encuesta_EFI2017.xls]{.underline}
+
+Faltan `r setdiff(Muestra_Lec_efi2017$ID, Encuesta_Lec_efi2017$ID) %>% length()` respuestas en la encuesta que estaban en la muestra. supongo que son la no respuesta.
+
+El 99 esta definido como NA?
+
+-  __`situacin`:__ situacion del encuestado. Definir que significan las respuestas. (Na = `r sum(is.na(Encuesta_Lec_efi2017$situacin))`) `r Encuesta_Lec_efi2017$situacin %>% table()`
+
+# EFI 2024
+
+```{r}
+Mat_Cdor_efi2024 <- read_dta('TODOS Cdor form_ingreso_ EFI2024.dta')
+Act_Cdor_efi2024 <- read_dta('TODOS Cdor actividades_EFI2024.dta')
+Muestra_Cdor_efi2024 <- read_excel('Muestra Cdor_EFI2024.xls', sheet=2)
+Encuesta_Cdor_efi2024 <- read_xlsx('encuesta Cdor_EFI2024.xlsx')
+```
+

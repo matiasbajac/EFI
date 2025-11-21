@@ -1,0 +1,1018 @@
+---
+title: "Indicadores y tablas"
+subtitle: 'encuesta 2024'
+author: "Jimena Padin"
+date: "2025-11-18"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(tidyverse)
+```
+
+```{r}
+encuesta2024 <- read_excel("../bases EFI 2025/bases EFI 2024/encuesta Cdor_EFI2024.xlsx")
+# saco la gente que me contesto que no abandonaron
+encuesta2024 <- encuesta2024 %>% 
+   filter(`1. ¿Consideras que abandonaste la Carrera de Contador Público?`!='No')
+# saco 2 que me dijeron que abandonaron peor toda la encuesta es NA
+encuesta2024 <- encuesta2024 %>% 
+   filter(!`Ingresa tu nombre y apellido`%in%c('Belén Viola', 'AQUINES GONZALEZ, PAULA VERONICA'))
+```
+
+# Indicadores
+
+## Indicador 1 y 2 - Motivo Personal / Institucional / Mixto
+
+```{r}
+encuesta2024 <- encuesta2024 %>% 
+   mutate(p4a = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Motivos laborales]`=='Si', 1, 0),
+          p4b = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Cambio a otra carrera en la UDELAR]`=='Si', 1, 0),
+          p4c = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Cambio a la misma carrera fuera de la UDELAR]`=='Si', 1, 0),
+          p4d = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Cambio a otros estudios terciarios fuera de la UDELAR (ej.: magisterio, universidades privadas, UTU-terciaria)]`=='Si', 1, 0),
+          p4e = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Cambio a otros estudios no terciarios (los estudios no terciarios NO requieren finalizar bachillerato)]`=='Si', 1, 0),
+          p4f = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Lo que aprendías te parecía de poca utilidad profesional]`=='Si', 1, 0),
+          p4g = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [No te sentías lo suficientemente preparado para las exigencias de la carrera]`=='Si', 1, 0),
+          p4h = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Motivos familiares]`=='Si', 1, 0),
+          p4i = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Problemas relacionados a la estructura curricular (ej.: previaturas, límite de cursado)]`=='Si', 1, 0),
+          p4j = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Problemas de salud]`=='Si', 1, 0),
+          p4k = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Motivos económicos]`=='Si', 1, 0),
+          p4l = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Distancia de la facultad a tu hogar/trabajo]`=='Si', 1, 0),
+          p4m = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Te diste cuenta que tu vocación era otra]`=='Si', 1, 0),
+          p4n = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Falta de amigos, conocidos o compañeros en facultad]`=='Si', 1, 0),
+          p4o = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Los horarios de los cursos]`=='Si', 1, 0),
+          p4p = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Masividad de los grupos]`=='Si', 1, 0),
+          p4q = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Ambiente institucional (ej.: profesores, administrativos)]`=='Si', 1, 0),
+          p4r = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [No te iba bien en Conceptos Contables, Matemáticas y/o Estadística]`=='Si', 1, 0),
+          p4s = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Te ponías nerviosa/o en las revisiones]`=='Si', 1, 0),
+          p4t = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Te preocupaba tener calificaciones bajas]`=='Si', 1, 0),
+          p4u = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Tuviste dificultades de adaptación]`=='Si', 1, 0),
+          p4v = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [No encontraste buena disponibilidad de parte de los profesores]`=='Si', 1, 0),
+          p4w = ifelse(`4.a.  De los motivos listados a continuación, marca con SÍ o NO cuáles influyeron en tu decisión de abandonar la carrera de Contador Público. [Te fuiste de viaje]`=='Si', 1, 0))
+```
+
+```{r}
+encuesta2024 <- encuesta2024 %>% 
+   mutate(institucional = rowSums(across(c(p4c,p4i,p4o,p4p,p4q,p4v)), na.rm = T),
+          personal = rowSums(across(c(p4a,p4b,p4d,p4e,p4f,p4g,p4h,p4j,p4k,p4l,p4m,p4n,p4r,p4s,p4t,p4u,p4w)), na.rm = T)) %>% 
+   mutate(institucional = ifelse(institucional == 0, 0, 1),
+          personal = ifelse(personal == 0, 0, 1)) %>% 
+   mutate(mixto = ifelse ((personal==1)&(institucional==1), 1, 0))
+```
+
+```{r}
+encuesta2024 <- encuesta2024 %>% 
+   mutate(economico_laboral = rowSums(across(c(p4a,p4k,p4l,p4f)), na.rm = T),
+          familiar_salud = rowSums(across(c(p4h,p4j)), na.rm = T),
+          vocacion_motivacion = rowSums(across(c(p4b,p4d,p4e,p4g,p4m)), na.rm = T),
+          social_emocional = rowSums(across(c(p4n,p4s,p4t,p4u)), na.rm = T)) %>% 
+   mutate(economico_laboral = ifelse(economico_laboral==0, 0, 1),
+          familiar_salud = ifelse(familiar_salud==0, 0, 1),
+          vocacion_motivacion = ifelse(vocacion_motivacion==0, 0, 1),
+          social_emocional = ifelse(social_emocional==0, 0, 1))
+```
+
+## Indicador 3 - Motivo Sistémico/Instruccional
+
+```{r}
+encuesta2024 <- encuesta2024 %>% 
+   mutate(instruccional = rowSums(across(c(p4b,p4c,p4d)), na.rm = T)) %>% 
+   mutate(instruccional = ifelse(instruccional==0, 0, 1)) %>% 
+   mutate(sistemico = ifelse(instruccional==1, 0, 1))
+```
+
+## Indicador 4 - Integración social
+
+```{r}
+encuesta2024 <- encuesta2024 %>% 
+   mutate(p21 = ifelse(`21. ¿Tenías algún compañero o amigo que ingreso contigo a la FCEA?`=='No', 0, 1),
+          p22 = ifelse(`22. ¿Y que haya ingresado contigo a la carrera de Contador?`=='No', 0, 1),
+          p23i = ifelse(`23. Mientras estudiabas la carrera de Contador Público (marcá Si o No según corresponda) [¿Hiciste nuevos amigos en facultad?]`=='No', 0, 1),
+          p23ii = ifelse(`23. Mientras estudiabas la carrera de Contador Público (marcá Si o No según corresponda) [¿Te vinculaste o participaste en alguna actividad gremial o del centro de estudiantes? (ej.: encuentro de estudiantes, charlas, asambleas)]`=='No', 0, 1),
+          p23iii = ifelse(`23. Mientras estudiabas la carrera de Contador Público (marcá Si o No según corresponda) [¿Participaste en actividades sociales de facultad? (ej.: bailes, festivales)]`=='No', 0, 1),
+          p23iv = ifelse(`23. Mientras estudiabas la carrera de Contador Público (marcá Si o No según corresponda) [¿Tenías un grupo de estudio en facultad?]`=='No', 0, 1),
+          p23v = ifelse(`23. Mientras estudiabas la carrera de Contador Público (marcá Si o No según corresponda) [¿Tenías docentes a los que pudieras consultar dudas sobre los contenidos de las materias que dictaban, u otros aspectos de la Facultad?]`=='No', 0, 1),
+          p23vii = ifelse(`23. Mientras estudiabas la carrera de Contador Público (marcá Si o No según corresponda) [¿Cuándo tenías que realizar trámites, los funcionarios eran amables para orientarte y evacuar dudas?]`=='No', 0, 1),
+          p23viii = ifelse(`23. Mientras estudiabas la carrera de Contador Público (marcá Si o No según corresponda) [¿Te sentías a gusto en la facultad?]`=='No', 0, 1))
+```
+
+```{r}
+encuesta2024 <- encuesta2024 %>% 
+   mutate(integracion_social = rowMeans(across(c(p21,p22,p23i,p23ii,p23iii,p23iv,p23v,p23vii,p23viii)), na.rm = T)) %>% 
+   mutate(clas_integracion_social = case_when(integracion_social<0.4 ~ 'bajo',
+                                         integracion_social>0.7 ~ 'alto',
+                                         is.na(integracion_social) ~ NA, 
+                                         TRUE ~ 'medio'))
+```
+
+
+## Indicador 5 - Vulnerabilidad académica
+
+```{r}
+encuesta2024 <- encuesta2024 %>% 
+   mutate(p27 = ifelse(`27. ¿Te parece que el bachillerato te preparó bien para la FCEA?`%in%c('Bastante mal', 'No muy bien'), 1, 0),
+          p26 = ifelse(`26. ¿Cómo consideras que eras como estudiante durante el bachillerato?`%in%c('Malo', 'Medio'), 1, 0),
+          p3 = ifelse(`3. ¿Cómo fue en general tu asistencia a clases de FCEA durante tu trayectoria en la carrera de Contador?`%in%c('Nunca asisti','Casi nunca asisti','Asistí poco'), 1, 0),
+          p10a = ifelse(`10.  ¿Consideras que te hubiera servido contar con... [...apoyo de un docente orientador?]`=='Mucho', 1, 0),
+          p10b = ifelse(`10.  ¿Consideras que te hubiera servido contar con... […apoyo de un estudiante avanzado?]`=='Mucho', 1, 0),
+          p10c = ifelse(`10.  ¿Consideras que te hubiera servido contar con... […más clases de apoyo durante el 1er año?]`=='Mucho', 1, 0))
+```
+
+```{r}
+encuesta2024 <- encuesta2024 %>% 
+   mutate(vulnerabilidad_academica = rowMeans(across(c(p27,p26,p3,p10a,p10b,p10c,p4r,p4g)), na.rm = T)) %>% 
+   mutate(clas_vulnerabilidad_academica = case_when(vulnerabilidad_academica<0.35 ~ 'bajo',
+                                                    vulnerabilidad_academica>0.7 ~ 'alto',
+                                                    is.na(vulnerabilidad_academica) ~ NA,
+                                                    TRUE ~ 'medio'))
+```
+
+
+## Indicador 6 - presión económica/laboral
+
+```{r}
+encuesta2024 <- encuesta2024 %>% 
+   mutate(p17 = ifelse(`17.  Cuando estabas estudiando en FCEA, ¿trabajabas?`=='No', 0, 1),
+          p18 = ifelse(`18. ¿Cuántas horas por semana trabajabas mientras estudiabas en la FCEA?`>=40, 1, 0),
+          p14 = ifelse(`14. Cuando estabas estudiando en FCEA, ¿tenías o estabas esperando un hijo/a?`=='No', 0, 1),
+          p8g = ifelse(`8. ¿Recibiste apoyo económico de algún programa de becas para cursar esta carrera? Indicar Si o No en cada caso. [Desconocía la existencia de estos programas y me hubiera ayudado aplicar]`=='No', 0, 1))
+```
+
+```{r}
+encuesta2024 <- encuesta2024 %>% 
+   mutate(presion_economica = rowMeans(across(c(p17,p18,p4k,p4a,p14,p4l,p8g)), na.rm = T)) %>% 
+   mutate(clas_presion_economica = case_when(presion_economica<0.4 ~ 'bajo',
+                                             presion_economica>0.75 ~ 'alto',
+                                             is.na(presion_economica) ~ NA,
+                                             TRUE ~ 'medio'))
+```
+
+# Tablas
+
+## Tipo de abandono x carrera
+
+```{r}
+(encuesta2024$instruccional %>% sum())/nrow(encuesta2024)
+(encuesta2024$sistemico %>% sum())/nrow(encuesta2024)
+```
+
+## Motivo de abandono x carrera (disjuntos -> con mixto)
+
+```{r}
+(encuesta2024 %>% filter(personal==1 & institucional==0) %>% nrow())/nrow(encuesta2024)
+(encuesta2024 %>% filter(personal==0 & instruccional==1) %>% nrow())/nrow(encuesta2024)
+(encuesta2024 %>% filter(mixto==1) %>% nrow())/nrow(encuesta2024)
+
+(encuesta2024 %>% filter(personal==1) %>% nrow())/nrow(encuesta2024)
+(encuesta2024 %>% filter(institucional==1) %>% nrow())/nrow(encuesta2024)
+```
+
+
+## Motivos de abandono personal x carrera (no dijunto -> no suma 100%)
+
+```{r}
+(encuesta2024 %>% filter(economico_laboral==1) %>% nrow())/nrow(encuesta2024)
+(encuesta2024 %>% filter(familiar_salud==1) %>% nrow())/nrow(encuesta2024)
+(encuesta2024 %>% filter(vocacion_motivacion==1) %>% nrow())/nrow(encuesta2024)
+(encuesta2024 %>% filter(social_emocional==1) %>% nrow())/nrow(encuesta2024)
+```
+
+
+## Integración social x carrera
+
+```{r}
+((encuesta2024$clas_integracion_social %>% table())/nrow(encuesta2024)) #%>% sum()
+```
+
+## Vulnerabilidad académica x carrera
+
+```{r}
+((encuesta2024$clas_vulnerabilidad_academica %>% table())/nrow(encuesta2024)) #%>% sum()
+```
+
+## Presión económica x carrera
+
+```{r}
+((encuesta2024$clas_presion_economica %>% table())/nrow(encuesta2024)) #%>% sum()
+```
+
+## Integración social x Tipo abandono (total y x carrera)
+
+```{r}
+encu_sist <- encuesta2024 %>% filter(sistemico==1)
+((encu_sist$clas_integracion_social %>% table())/nrow(encu_sist)) #%>% sum()
+
+encu_instr <- encuesta2024 %>% filter(instruccional==1)
+((encu_instr$clas_integracion_social %>% table())/nrow(encu_instr)) #%>% sum()
+```
+
+```{r}
+encu_sist <- encuesta2024 %>% filter(clas_integracion_social=='alto')
+((encu_sist$sistemico %>% table())/nrow(encu_sist)) #%>% sum()
+
+encu_sist <- encuesta2024 %>% filter(clas_integracion_social=='medio')
+((encu_sist$sistemico %>% table())/nrow(encu_sist)) #%>% sum()
+
+encu_sist <- encuesta2024 %>% filter(clas_integracion_social=='bajo')
+((encu_sist$sistemico %>% table())/nrow(encu_sist)) #%>% sum()
+```
+## vulnerabilidad academica x Tipo abandono (total y x carrera)
+
+
+
+```{r}
+encu_sist <- encuesta2024 %>% filter(clas_vulnerabilidad_academica=='alto')
+((encu_sist$sistemico %>% table())/nrow(encu_sist)) #%>% sum()
+
+encu_sist <- encuesta2024 %>% filter(clas_vulnerabilidad_academica=='medio')
+((encu_sist$sistemico %>% table())/nrow(encu_sist)) #%>% sum()
+
+encu_sist <- encuesta2024 %>% filter(clas_vulnerabilidad_academica=='bajo')
+((encu_sist$sistemico %>% table())/nrow(encu_sist)) #%>% sum()
+```
+## horas trabajo x vulnerabilidad academica
+
+```{r}
+encu_temporal <- encuesta2024 %>% filter(`17.  Cuando estabas estudiando en FCEA, ¿trabajabas?`=='No')
+(encu_temporal$clas_vulnerabilidad_academica %>% table())/nrow(encu_temporal)
+
+encu_temporal <- encuesta2024 %>% filter(`18. ¿Cuántas horas por semana trabajabas mientras estudiabas en la FCEA?`<40)
+(encu_temporal$clas_vulnerabilidad_academica %>% table())/nrow(encu_temporal)
+
+encu_temporal <- encuesta2024 %>% filter(`18. ¿Cuántas horas por semana trabajabas mientras estudiabas en la FCEA?`>=40)
+(encu_temporal$clas_vulnerabilidad_academica %>% table())/nrow(encu_temporal)
+```
+
+## horas trabajo x presion economica
+
+```{r}
+encu_temporal <- encuesta2024 %>% filter(`17.  Cuando estabas estudiando en FCEA, ¿trabajabas?`=='No')
+(encu_temporal$clas_presion_economica %>% table())/nrow(encu_temporal)
+
+encu_temporal <- encuesta2024 %>% filter(`18. ¿Cuántas horas por semana trabajabas mientras estudiabas en la FCEA?`<40)
+(encu_temporal$clas_presion_economica %>% table())/nrow(encu_temporal)
+
+encu_temporal <- encuesta2024 %>% filter(`18. ¿Cuántas horas por semana trabajabas mientras estudiabas en la FCEA?`>=40)
+(encu_temporal$clas_presion_economica %>% table())/nrow(encu_temporal)
+```
+## Vulnerabilidad académica x motivo abandono (total y x carrera)
+
+```{r}
+encu_temporal <- encuesta2024 %>% filter(institucional==1)
+((encu_temporal$clas_vulnerabilidad_academica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2024 %>% filter(economico_laboral==1)
+((encu_temporal$clas_vulnerabilidad_academica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2024 %>% filter(familiar_salud==1)
+((encu_temporal$clas_vulnerabilidad_academica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2024 %>% filter(vocacion_motivacion==1)
+((encu_temporal$clas_vulnerabilidad_academica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2024 %>% filter(social_emocional==1)
+((encu_temporal$clas_vulnerabilidad_academica %>% table())/nrow(encu_temporal)) #%>% sum()
+```
+
+```{r}
+encu_temporal <- encuesta2024 %>% filter(clas_vulnerabilidad_academica=='alto')
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+
+encu_temporal <- encuesta2024 %>% filter(clas_vulnerabilidad_academica=='medio')
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+
+encu_temporal <- encuesta2024 %>% filter(clas_vulnerabilidad_academica=='bajo')
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+encuesta2024$clas_vulnerabilidad_academica %>% table()
+```
+
+
+## presion economica x motivo abandono (x carrera?)
+
+```{r}
+encu_temporal <- encuesta2024 %>% filter(institucional==1)
+((encu_temporal$clas_presion_economica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2024 %>% filter(economico_laboral==1)
+((encu_temporal$clas_presion_economica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2024 %>% filter(familiar_salud==1)
+((encu_temporal$clas_presion_economica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2024 %>% filter(vocacion_motivacion==1)
+((encu_temporal$clas_presion_economica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2024 %>% filter(social_emocional==1)
+((encu_temporal$clas_presion_economica %>% table())/nrow(encu_temporal)) #%>% sum()
+```
+
+```{r}
+encu_temporal <- encuesta2024 %>% filter(clas_presion_economica=='alto')
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+
+encu_temporal <- encuesta2024 %>% filter(clas_presion_economica=='medio')
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+
+encu_temporal <- encuesta2024 %>% filter(clas_presion_economica=='bajo')
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+```
+
+
+## Motivo de inscripción x motivo abandono (x carrera?)
+
+```{r}
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Porque podría mejorar tus ingresos salariales]`=='Si') %>% pull(institucional) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Porque podría mejorar tus ingresos salariales]`=='Si') %>% pull(economico_laboral) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Porque podría mejorar tus ingresos salariales]`=='Si') %>% pull(familiar_salud) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Porque podría mejorar tus ingresos salariales]`=='Si') %>% pull(vocacion_motivacion) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Porque podría mejorar tus ingresos salariales]`=='Si') %>% pull(social_emocional) %>% table()
+```
+
+```{r}
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Porque parecía una carrera fácil]`=='Si') %>% pull(institucional) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Porque parecía una carrera fácil]`=='Si') %>% pull(economico_laboral) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Porque parecía una carrera fácil]`=='Si') %>% pull(familiar_salud) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Porque parecía una carrera fácil]`=='Si') %>% pull(vocacion_motivacion) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Porque parecía una carrera fácil]`=='Si') %>% pull(social_emocional) %>% table()
+```
+
+
+```{r}
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Porque es una carrera de prestigio]`=='Si') %>% pull(institucional) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Porque es una carrera de prestigio]`=='Si') %>% pull(economico_laboral) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Porque es una carrera de prestigio]`=='Si') %>% pull(familiar_salud) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Porque es una carrera de prestigio]`=='Si') %>% pull(vocacion_motivacion) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Porque es una carrera de prestigio]`=='Si') %>% pull(social_emocional) %>% table()
+```
+
+
+```{r}
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Por vocación]`=='Si') %>% pull(institucional) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Por vocación]`=='Si') %>% pull(economico_laboral) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Por vocación]`=='Si') %>% pull(familiar_salud) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Por vocación]`=='Si') %>% pull(vocacion_motivacion) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Por vocación]`=='Si') %>% pull(social_emocional) %>% table()
+```
+
+
+```{r}
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Te inscribiste por descarte]`=='Si') %>% pull(institucional) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Te inscribiste por descarte]`=='Si') %>% pull(economico_laboral) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Te inscribiste por descarte]`=='Si') %>% pull(familiar_salud) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Te inscribiste por descarte]`=='Si') %>% pull(vocacion_motivacion) %>% table()
+
+encuesta2024 %>% filter(`5.  De los motivos listados a continuación, marca con SÍ o NO cuáles incidieron en la decisión de inscribirte a la carrera de Contador Público [Te inscribiste por descarte]`=='Si') %>% pull(social_emocional) %>% table()
+```
+
+## Motivo de abandono x genero (x carrera?)
+
+```{r}
+Muestra2024 <- read_excel("../bases EFI 2025/bases EFI 2024/Muestra Cdor_EFI2024.xls", 
+    sheet = "muestra")
+encuesta2024 <- encuesta2024 %>% left_join(Muestra2024, by=c('Ingresa la CI'='numerodoc'))
+```
+
+```{r}
+encuesta2024 %>% filter(institucional==1) %>% pull(mujer) %>% table()
+
+encuesta2024 %>% filter(economico_laboral==1) %>% pull(mujer) %>% table()
+
+encuesta2024 %>% filter(familiar_salud==1) %>% pull(mujer) %>% table()
+
+encuesta2024 %>% filter(vocacion_motivacion==1) %>% pull(mujer) %>% table()
+
+encuesta2024 %>% filter(social_emocional==1) %>% pull(mujer) %>% table()
+```
+
+
+## Motivo de abandono x interior/exterior (x carrera?)
+
+```{r}
+encuesta2024 %>% filter(institucional==1) %>% pull(bach_mdeo) %>% table()
+
+encuesta2024 %>% filter(economico_laboral==1) %>% pull(bach_mdeo) %>% table()
+
+encuesta2024 %>% filter(familiar_salud==1) %>% pull(bach_mdeo) %>% table()
+
+encuesta2024 %>% filter(vocacion_motivacion==1) %>% pull(bach_mdeo) %>% table()
+
+encuesta2024 %>% filter(social_emocional==1) %>% pull(bach_mdeo) %>% table()
+```
+
+```{r}
+encu_temporal <- encuesta2024 %>% filter(bach_mdeo==0)
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+
+encu_temporal <- encuesta2024 %>% filter(bach_mdeo==1)
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+```
+
+
+## integracion social x interior/exterior (x carrera?)
+
+```{r}
+encuesta2024 %>% filter(bach_mdeo==1) %>% pull(clas_integracion_social) %>% table()
+encuesta2024 %>% filter(bach_mdeo==0) %>% pull(clas_integracion_social) %>% table()
+```
+
+
+## vulnerabilidad academica x interior/exterior (x carrera?)
+
+```{r}
+encuesta2024 %>% filter(bach_mdeo==1) %>% pull(clas_vulnerabilidad_academica) %>% table()
+encuesta2024 %>% filter(bach_mdeo==0) %>% pull(clas_vulnerabilidad_academica) %>% table()
+```
+
+
+## presion economica x interior/exterior (x carrera?)
+
+```{r}
+encuesta2024 %>% filter(bach_mdeo==1) %>% pull(clas_presion_economica) %>% table()
+encuesta2024 %>% filter(bach_mdeo==0) %>% pull(clas_presion_economica) %>% table()
+```
+
+
+## integracion social x genero (x carrera?)
+
+```{r}
+encuesta2024 %>% filter(mujer==1) %>% pull(clas_integracion_social) %>% table()
+encuesta2024 %>% filter(mujer==0) %>% pull(clas_integracion_social) %>% table()
+```
+
+
+## vulnerabilidad academica x genero (x carrera?)
+
+```{r}
+encuesta2024 %>% filter(mujer==1) %>% pull(clas_vulnerabilidad_academica) %>% table()
+encuesta2024 %>% filter(mujer==0) %>% pull(clas_vulnerabilidad_academica) %>% table()
+```
+
+## presion economica x genero (x carrera?)
+
+```{r}
+encuesta2024 %>% filter(mujer==1) %>% pull(clas_presion_economica) %>% table()
+encuesta2024 %>% filter(mujer==0) %>% pull(clas_presion_economica) %>% table()
+```
+
+
+# 2017
+
+## Indicador 1 y 2
+
+```{r}
+encuesta2017 <- read_excel("../bases EFI 2025/bases EFI 2017/encuesta_EFI2017.xls") %>% 
+   filter(gen==2012)
+
+encuesta2017 <- encuesta2017 %>% 
+   mutate(p3_a = ifelse(p3_1=='s�', 1, 0),
+          p3_b = ifelse(p3_2=='s�', 1, 0),
+          p3_c = ifelse(p3_3=='s�', 1, 0),
+          p3_d = ifelse(p3_4=='s�', 1, 0),
+          p3_e = ifelse(p3_5=='s�', 1, 0),
+          p3_f = ifelse(p3_6=='s�', 1, 0),
+          p3_g = ifelse(p3_7=='s�', 1, 0),
+          p3_h = ifelse(p3_8=='s�', 1, 0),
+          p3_i = ifelse(p3_9=='s�', 1, 0),
+          p3_j = ifelse(p3_10=='s�', 1, 0),
+          p3_k = ifelse(p3_11=='s�', 1, 0),
+          p3_l = ifelse(p3_12=='s�', 1, 0),
+          p3_m = ifelse(p3_13=='s�', 1, 0),
+          p3_n = ifelse(p3_14=='s�', 1, 0),
+          p3_o = ifelse(p3_15=='s�', 1, 0),
+          p3_p = ifelse(p3_16=='s�', 1, 0)
+          )
+
+```
+
+```{r}
+encuesta2017 <- encuesta2017 %>% 
+   mutate(personal = rowSums(across(c(p3_n, p3_o)), na.rm = T),
+          institucional = rowSums(across(c(p3_a,p3_b,p3_c,p3_d,p3_e,p3_f,p3_g,p3_h,p3_i,p3_j,p3_k,p3_l,p3_m,p3_p)), na.rm=T)) %>% 
+   mutate(peronal = ifelse(personal==0, 0, 1),
+          institucional = ifelse(institucional==0, 0, 1)) %>% 
+   mutate(mixto = ifelse((institucional==1)&(personal==1),1,0))
+```
+
+## Indicador 2
+
+```{r}
+encuesta2017 <- encuesta2017 %>% 
+   mutate(economico_laboral = rowSums(across(c(p3_a,p3_j,p3_h,p3_k)),na.rm=T),
+          familiar_salud = rowSums(across(c(p3_f,p3_i)),na.rm = T),
+          vocacion_motivacion = rowSums(across(c(p3_b,p3_c,p3_d,p3_e,p3_g)),na.rm = T),
+          social_emocional = rowSums(across(c(p3_l,p3_m)),na.rm = T)) %>% 
+   mutate(economico_laboral = ifelse(economico_laboral==0, 0, 1),
+          familiar_salud = ifelse(familiar_salud==0, 0, 1),
+          vocacion_motivacion = ifelse(vocacion_motivacion==0,0,1),
+          social_emocional = ifelse(social_emocional==0,0,1))
+```
+
+## Indicador 3
+
+```{r}
+encuesta2017 <- encuesta2017 %>% 
+   mutate(p5 = ifelse(p5=='no', 0, 1),
+          p7 = ifelse(p8=='dej�',0,1)) %>% 
+   mutate(sistemico = ifelse((p5==0)|(p7==0),1,0),
+          instruccional = ifelse(sistemico==0, 1, 0))
+```
+
+
+##Indicador 4
+
+```{r}
+encuesta2017 <- encuesta2017 %>% 
+   mutate(p28_a = ifelse(p28=='s�, a facultad',1,0),
+          p28_b = ifelse(p28=='s�, a la carrera',2,0),
+          p29_a = ifelse(p29_1=='s�', 1, 0),
+          p29_a2 = ifelse(p29_1_1=='s�', 1, 0),
+          p29_b = ifelse(p29_2=='s�', 1, 0),
+          p29_c = ifelse(p29_3=='s�', 1, 0),
+          p29_d = ifelse(p29_4=='s�', 1, 0),
+          p29_e = ifelse(p29_5=='s�', 1, 0)) %>% 
+   mutate(integracion_social = rowMeans(across(c(p28_a,p28_b,p29_a,p29_a2,p29_b,p29_c,p29_d,p29_e,p3_l,p3_m)),na.rm=T)) %>% 
+   mutate(integracion_social = case_when(integracion_social<0.4~'bajo',
+                                         integracion_social>0.7~'alto',
+                                         TRUE~'medio'))
+```
+
+## Indicador 5
+
+```{r}
+encuesta2017 <- encuesta2017 %>% 
+   mutate(p31 = ifelse(p31%in%c('Malo','Medio'),1,0),
+          p33 = ifelse(p33%in%c('Bastante mal','No muy bien'),1,0),
+          p35 = ifelse(p35=='s�', 1, 0),
+          p37 = ifelse(p37=='s�', 1, 0),
+          p39_c = ifelse(p39_3=='s�', 1, 0),
+          p39_e = ifelse(p39_5=='s�', 1, 0))
+```
+
+```{r}
+encuesta2017 <- encuesta2017 %>% 
+   mutate(vulnerabilidad_academica = rowMeans(across(c(p31,p33,p35,p37,p39_c,p39_e)),na.rm=T)) %>% 
+   mutate(vulnerabilidad_academica = case_when(vulnerabilidad_academica<0.35~'bajo',
+                                         vulnerabilidad_academica>0.7~'alto',
+                                         TRUE~'medio'))
+```
+
+## Indicador 6
+
+```{r}
+encuesta2017 <- encuesta2017 %>% 
+   mutate(p22 = ifelse(p2=='s�', 1, 0),
+          p36_a = ifelse(p36_1=='s�', 1, 0),
+          p26 = ifelse(p26=='s�', 1, 0),
+          p13_e = ifelse(p13_5=='s�', 1, 0),)
+```
+
+```{r}
+encuesta2017 <- encuesta2017 %>% 
+   mutate(presion_economica = rowMeans(across(c(p22,p36_a,p3_a,p3_j,p26,p3_k,p13_e)),na.rm=T)) %>% 
+   mutate(presion_economica = case_when(presion_economica<0.4~'bajo',
+                                         presion_economica>0.75~'alto',
+                                         TRUE~'medio'))
+```
+
+
+# Tablas 2017
+
+
+## Tipo de abandono x carrera
+
+```{r}
+(encuesta2017$instruccional %>% sum(na.rm = T))/nrow(encuesta2017)
+(encuesta2017$sistemico %>% sum(na.rm = T))/nrow(encuesta2017)
+```
+
+## Motivo de abandono x carrera (disjuntos -> con mixto)
+
+```{r}
+(encuesta2017 %>% filter(personal==1 & institucional==0) %>% nrow())/nrow(encuesta2017)
+(encuesta2017 %>% filter(personal==0 & instruccional==1) %>% nrow())/nrow(encuesta2017)
+(encuesta2017 %>% filter(mixto==1) %>% nrow())/nrow(encuesta2017)
+
+(encuesta2017 %>% filter(personal==1) %>% nrow())/nrow(encuesta2017)
+(encuesta2017 %>% filter(institucional==1) %>% nrow())/nrow(encuesta2017)
+```
+
+
+## Motivos de abandono personal x carrera (no dijunto -> no suma 100%)
+
+```{r}
+(encuesta2017 %>% filter(economico_laboral==1) %>% nrow())/nrow(encuesta2017)
+(encuesta2017 %>% filter(familiar_salud==1) %>% nrow())/nrow(encuesta2017)
+(encuesta2017 %>% filter(vocacion_motivacion==1) %>% nrow())/nrow(encuesta2017)
+(encuesta2017 %>% filter(social_emocional==1) %>% nrow())/nrow(encuesta2017)
+```
+
+
+## Integración social x carrera
+
+```{r}
+((encuesta2017$integracion_social %>% table())/nrow(encuesta2017)) #%>% sum()
+```
+
+## Vulnerabilidad académica x carrera
+
+```{r}
+((encuesta2017$vulnerabilidad_academica %>% table())/nrow(encuesta2017)) #%>% sum()
+```
+
+## Presión económica x carrera
+
+```{r}
+((encuesta2017$presion_economica %>% table())/nrow(encuesta2017)) #%>% sum()
+```
+
+## Integración social x Tipo abandono (total y x carrera)
+
+```{r}
+encu_sist <- encuesta2017 %>% filter(sistemico==1)
+((encu_sist$integracion_social %>% table())/nrow(encu_sist)) #%>% sum()
+
+encu_instr <- encuesta2017 %>% filter(instruccional==1)
+((encu_instr$integracion_social %>% table())/nrow(encu_instr)) #%>% sum()
+```
+
+```{r}
+encu_sist <- encuesta2017 %>% filter(integracion_social=='alto')
+((encu_sist$sistemico %>% table())/nrow(encu_sist)) #%>% sum()
+
+encu_sist <- encuesta2017 %>% filter(integracion_social=='medio')
+((encu_sist$sistemico %>% table())/nrow(encu_sist)) #%>% sum()
+
+encu_sist <- encuesta2017 %>% filter(integracion_social=='bajo')
+((encu_sist$sistemico %>% table())/nrow(encu_sist)) #%>% sum()
+```
+
+## vulnerabilidad academica x Tipo abandono (total y x carrera)
+
+
+
+```{r}
+encu_sist <- encuesta2017 %>% filter(vulnerabilidad_academica=='alto')
+((encu_sist$sistemico %>% table())/nrow(encu_sist)) #%>% sum()
+
+encu_sist <- encuesta2017 %>% filter(vulnerabilidad_academica=='medio')
+((encu_sist$sistemico %>% table())/nrow(encu_sist)) #%>% sum()
+
+encu_sist <- encuesta2017 %>% filter(vulnerabilidad_academica=='bajo')
+((encu_sist$sistemico %>% table())/nrow(encu_sist)) #%>% sum()
+```
+
+
+## Vulnerabilidad académica x motivo abandono (total y x carrera)
+
+```{r}
+encu_temporal <- encuesta2017 %>% filter(institucional==1)
+((encu_temporal$vulnerabilidad_academica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2017 %>% filter(economico_laboral==1)
+((encu_temporal$vulnerabilidad_academica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2017 %>% filter(familiar_salud==1)
+((encu_temporal$vulnerabilidad_academica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2017 %>% filter(vocacion_motivacion==1)
+((encu_temporal$vulnerabilidad_academica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2017 %>% filter(social_emocional==1)
+((encu_temporal$vulnerabilidad_academica %>% table())/nrow(encu_temporal)) #%>% sum()
+```
+
+```{r}
+encu_temporal <- encuesta2017 %>% filter(vulnerabilidad_academica=='alto')
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+
+encu_temporal <- encuesta2017 %>% filter(vulnerabilidad_academica=='medio')
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+
+encu_temporal <- encuesta2017 %>% filter(vulnerabilidad_academica=='bajo')
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+```
+
+
+## presion economica x motivo abandono (x carrera?)
+
+```{r}
+encu_temporal <- encuesta2017 %>% filter(institucional==1)
+((encu_temporal$presion_economica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2017 %>% filter(economico_laboral==1)
+((encu_temporal$presion_economica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2017 %>% filter(familiar_salud==1)
+((encu_temporal$presion_economica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2017 %>% filter(vocacion_motivacion==1)
+((encu_temporal$presion_economica %>% table())/nrow(encu_temporal)) #%>% sum()
+
+encu_temporal <- encuesta2017 %>% filter(social_emocional==1)
+((encu_temporal$presion_economica %>% table())/nrow(encu_temporal)) #%>% sum()
+```
+
+```{r}
+encu_temporal <- encuesta2017 %>% filter(presion_economica=='alto')
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+
+encu_temporal <- encuesta2017 %>% filter(presion_economica=='medio')
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+
+encu_temporal <- encuesta2017 %>% filter(presion_economica=='bajo')
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+```
+
+
+## Motivo de inscripción x motivo abandono (x carrera?)
+
+```{r}
+encuesta2017 %>% filter(p10_1=='s�') %>% pull(institucional) %>% table()
+
+encuesta2017 %>% filter(p10_1=='s�') %>% pull(economico_laboral) %>% table()
+
+encuesta2017 %>% filter(p10_1=='s�') %>% pull(familiar_salud) %>% table()
+
+encuesta2017 %>% filter(p10_1=='s�') %>% pull(vocacion_motivacion) %>% table()
+
+encuesta2017 %>% filter(p10_1=='s�') %>% pull(social_emocional) %>% table()
+```
+
+```{r}
+encuesta2017 %>% filter(p10_2=='s�') %>% pull(institucional) %>% table()
+
+encuesta2017 %>% filter(p10_2=='s�') %>% pull(economico_laboral) %>% table()
+
+encuesta2017 %>% filter(p10_2=='s�') %>% pull(familiar_salud) %>% table()
+
+encuesta2017 %>% filter(p10_2=='s�') %>% pull(vocacion_motivacion) %>% table()
+
+encuesta2017 %>% filter(p10_2=='s�') %>% pull(social_emocional) %>% table()
+```
+
+
+```{r}
+encuesta2017 %>% filter(p10_4=='s�') %>% pull(institucional) %>% table()
+
+encuesta2017 %>% filter(p10_4=='s�') %>% pull(economico_laboral) %>% table()
+
+encuesta2017 %>% filter(p10_4=='s�') %>% pull(familiar_salud) %>% table()
+
+encuesta2017 %>% filter(p10_4=='s�') %>% pull(vocacion_motivacion) %>% table()
+
+encuesta2017 %>% filter(p10_4=='s�') %>% pull(social_emocional) %>% table()
+```
+
+
+```{r}
+encuesta2017 %>% filter(p10_8=='s�') %>% pull(institucional) %>% table()
+
+encuesta2017 %>% filter(p10_8=='s�') %>% pull(economico_laboral) %>% table()
+
+encuesta2017 %>% filter(p10_8=='s�') %>% pull(familiar_salud) %>% table()
+
+encuesta2017 %>% filter(p10_8=='s�') %>% pull(vocacion_motivacion) %>% table()
+
+encuesta2017 %>% filter(p10_8=='s�') %>% pull(social_emocional) %>% table()
+```
+
+
+```{r}
+encuesta2017 %>% filter(p10_12=='s�') %>% pull(institucional) %>% table()
+
+encuesta2017 %>% filter(p10_12=='s�') %>% pull(economico_laboral) %>% table()
+
+encuesta2017 %>% filter(p10_12=='s�') %>% pull(familiar_salud) %>% table()
+
+encuesta2017 %>% filter(p10_12=='s�') %>% pull(vocacion_motivacion) %>% table()
+
+encuesta2017 %>% filter(p10_12=='s�') %>% pull(social_emocional) %>% table()
+```
+
+## Motivo de abandono x genero (x carrera?)
+
+```{r}
+library(haven)
+Actividades2017 <- read_dta("../bases EFI 2025/bases EFI 2017/Actividades Lec_EFI2017.dta")
+
+encuesta2017 <- encuesta2017 %>% left_join(Actividades2017, by=c('estci' = 'ci'))
+
+encuesta2017 <- encuesta2017 %>% 
+   mutate(mujer = ifelse(sexo=='F', 1, 0))
+```
+
+
+```{r}
+encuesta2017 %>% filter(institucional==1) %>% pull(mujer) %>% table()
+
+encuesta2017 %>% filter(economico_laboral==1) %>% pull(mujer) %>% table()
+
+encuesta2017 %>% filter(familiar_salud==1) %>% pull(mujer) %>% table()
+
+encuesta2017 %>% filter(vocacion_motivacion==1) %>% pull(mujer) %>% table()
+
+encuesta2017 %>% filter(social_emocional==1) %>% pull(mujer) %>% table()
+```
+
+
+## Motivo de abandono x interior/exterior (x carrera?)
+
+```{r}
+encuesta2017 <- encuesta2017 %>% 
+   mutate(p20 = ifelse(p20=='no',0,1))
+```
+
+```{r}
+encuesta2017 %>% filter(institucional==1) %>% pull(p20) %>% table()
+
+encuesta2017 %>% filter(economico_laboral==1) %>% pull(p20) %>% table()
+
+encuesta2017 %>% filter(familiar_salud==1) %>% pull(p20) %>% table()
+
+encuesta2017 %>% filter(vocacion_motivacion==1) %>% pull(p20) %>% table()
+
+encuesta2017 %>% filter(social_emocional==1) %>% pull(p20) %>% table()
+```
+
+```{r}
+encu_temporal <- encuesta2017 %>% filter(p20==0)
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+
+encu_temporal <- encuesta2017 %>% filter(p20==1)
+encu_temporal %>% 
+   summarise(inst=sum(institucional)/n(),
+             eco=sum(economico_laboral)/n(),
+             cui=sum(familiar_salud)/n(),
+             voc=sum(vocacion_motivacion)/n(),
+             soc=sum(social_emocional)/n())
+```
+
+
+## integracion social x interior/exterior (x carrera?)
+
+```{r}
+encuesta2017 %>% filter(p20==1) %>% pull(integracion_social) %>% table()
+encuesta2017 %>% filter(p20==0) %>% pull(integracion_social) %>% table()
+```
+
+
+## vulnerabilidad academica x interior/exterior (x carrera?)
+
+```{r}
+encuesta2017 %>% filter(p20==1) %>% pull(vulnerabilidad_academica) %>% table()
+encuesta2017 %>% filter(p20==0) %>% pull(vulnerabilidad_academica) %>% table()
+```
+
+
+## presion economica x interior/exterior (x carrera?)
+
+```{r}
+encuesta2017 %>% filter(p20==1) %>% pull(presion_economica) %>% table()
+encuesta2017 %>% filter(p20==0) %>% pull(presion_economica) %>% table()
+```
+
+
+## integracion social x genero (x carrera?)
+
+```{r}
+encuesta2017 %>% filter(mujer==1) %>% pull(integracion_social) %>% table()
+encuesta2017 %>% filter(mujer==0) %>% pull(integracion_social) %>% table()
+```
+
+
+## vulnerabilidad academica x genero (x carrera?)
+
+```{r}
+encuesta2017 %>% filter(mujer==1) %>% pull(vulnerabilidad_academica) %>% table()
+encuesta2017 %>% filter(mujer==0) %>% pull(vulnerabilidad_academica) %>% table()
+```
+
+## presion economica x genero (x carrera?)
+
+```{r}
+encuesta2017 %>% filter(mujer==1) %>% pull(presion_economica) %>% table()
+encuesta2017 %>% filter(mujer==0) %>% pull(presion_economica) %>% table()
+```
+
+
+
+
+
+
+
+
+
+# caracterizacion
+
+```{r}
+encuesta2017 %>% nrow()
+encuesta2024 %>% nrow()
+```
+
+```{r}
+encuesta2024$bach_mdeo %>% table()
+encuesta2017$p20 %>% table()
+```
+
+
+
+
+
+
+
